@@ -1,0 +1,1758 @@
+<title>동김제 작업지시 계산판</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --paper:#F6F8F3; --surface:#FFFFFF; --surface-2:#FBFCF9;
+  --ink:#1A231C; --ink-2:#4A574C; --ink-3:#77836F;
+  --line:#DCE3D6; --line-2:#EDF1E9;
+  --leaf:#2F6B43; --leaf-soft:#E7F0E6;
+  --amber:#9A6200; --amber-soft:#FBF0D9;
+  --alert:#A82B21; --alert-soft:#FBE7E4;
+  --edit:#4B5FA8; --edit-soft:#E8ECF7;
+  --onaccent:#FFFFFF;          /* 진한 바탕 위 글자색 */
+  --input-bg:#FFFDF4; --input-line:#D9B865;
+  --shadow:0 1px 2px rgba(26,35,28,.06), 0 4px 14px rgba(26,35,28,.05);
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#11150F; --surface:#181D16; --surface-2:#1D2319;
+    --ink:#E7EDE3; --ink-2:#B2BDAD; --ink-3:#8A9585;
+    --line:#2C3529; --line-2:#232B21;
+    --leaf:#7DBE8D; --leaf-soft:#1E2C20;
+    --amber:#E0AE55; --amber-soft:#2C2416;
+    --alert:#E98B80; --alert-soft:#33201D;
+    --edit:#9AACE4; --edit-soft:#1B2030;
+    --onaccent:#0F1410;
+    --input-bg:#211E13; --input-line:#6E5C2E;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 4px 14px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#11150F; --surface:#181D16; --surface-2:#1D2319;
+  --ink:#E7EDE3; --ink-2:#B2BDAD; --ink-3:#8A9585;
+  --line:#2C3529; --line-2:#232B21;
+  --leaf:#7DBE8D; --leaf-soft:#1E2C20;
+  --amber:#E0AE55; --amber-soft:#2C2416;
+  --alert:#E98B80; --alert-soft:#33201D;
+  --edit:#9AACE4; --edit-soft:#1B2030;
+  --onaccent:#0F1410;
+  --input-bg:#211E13; --input-line:#6E5C2E;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 4px 14px rgba(0,0,0,.3);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:'IBM Plex Sans KR',system-ui,-apple-system,'Malgun Gothic',sans-serif;
+  font-size:14px; line-height:1.5; -webkit-text-size-adjust:100%;
+}
+h1,h2,h3{font-family:'Gowun Dodum','IBM Plex Sans KR',sans-serif; font-weight:400; margin:0; text-wrap:balance}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- 상단 바 ---------- */
+.topbar{position:sticky; top:env(safe-area-inset-top,0px); z-index:30; background:var(--surface); border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1240px; margin:0 auto; padding:10px 16px; display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px}
+.brand{display:flex; align-items:baseline; gap:9px; margin-right:auto}
+.brand h1{font-size:17px; letter-spacing:-.01em}
+.brand .tag{font-size:11px; color:var(--ink-3); letter-spacing:.06em}
+.datefield{display:flex; align-items:center; gap:7px}
+.datefield label{font-size:11px; color:var(--ink-3); letter-spacing:.06em}
+input[type=date]{font:inherit; font-size:13px; color:var(--ink); background:var(--input-bg); border:1px solid var(--input-line); border-radius:7px; padding:5px 8px}
+.tabs{display:flex; gap:2px; flex-wrap:wrap; width:100%; border-top:1px solid var(--line-2); padding-top:8px}
+.tab{font:inherit; font-size:13px; font-weight:500; cursor:pointer; background:none; border:0; border-bottom:2px solid transparent;
+  color:var(--ink-3); padding:6px 11px 7px; border-radius:6px 6px 0 0}
+.tab:hover{color:var(--ink-2); background:var(--surface-2)}
+.tab[aria-selected="true"]{color:var(--leaf); border-bottom-color:var(--leaf); font-weight:600}
+.tab:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--leaf); outline-offset:1px}
+
+.wrap{max-width:1240px; margin:0 auto; padding:18px 16px 64px}
+
+/* ---------- 버튼 ---------- */
+.btn{font:inherit; font-size:13px; font-weight:500; cursor:pointer; background:var(--leaf);
+  color:var(--onaccent); border:1px solid transparent; border-radius:8px; padding:7px 15px}
+.btn:hover{filter:brightness(1.08)}
+.btn.edit{background:var(--edit); color:var(--onaccent)}
+.btn.sec{background:var(--surface); color:var(--ink-2); border-color:var(--line)}
+.btn.sec:hover{border-color:var(--leaf); color:var(--leaf); filter:none}
+.btn.danger{background:var(--surface); color:var(--alert); border-color:var(--alert)}
+.btn.danger:hover{filter:none; background:var(--alert-soft)}
+
+/* ---------- 안내 ---------- */
+.hint{display:flex; gap:10px; background:var(--leaf-soft); border-left:3px solid var(--leaf);
+  border-radius:0 8px 8px 0; padding:11px 14px; margin-bottom:14px; font-size:12.5px; color:var(--ink-2); line-height:1.55}
+.hint b{color:var(--ink); font-weight:600}
+.hint.editing{background:var(--edit-soft); border-left-color:var(--edit)}
+
+.toolbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:14px}
+.toolbar .spacer{margin-left:auto}
+
+/* ---------- 제품 카드 ---------- */
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:14px}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden; display:flex; flex-direction:column}
+.card.short{border-color:var(--alert)}
+body.editmode .card{border-style:dashed; border-color:var(--edit)}
+.card-hd{display:flex; align-items:center; flex-wrap:wrap; gap:8px 8px; padding:10px 14px 9px; border-bottom:1px solid var(--line-2); background:var(--surface-2)}
+.hbtns{display:flex; gap:3px; flex:0 0 auto}
+.fsub{flex:1 1 100%; font-size:11.5px; font-weight:400; color:var(--ink-2); background:var(--surface)}
+.fsub::placeholder{color:var(--ink-3); font-weight:400}
+body.editmode .card-hd .plot{flex:0 0 auto}
+.card-hd h3{font-size:15.5px; letter-spacing:-.01em}
+.card-hd .sub{font-size:11px; color:var(--ink-3)}
+.card-hd .plot{margin-left:auto; font-size:11px; color:var(--ink-3); white-space:nowrap}
+.card-bd{padding:12px 14px; display:flex; flex-direction:column; gap:11px}
+
+.inrow{display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end}
+.field{display:flex; flex-direction:column; gap:3px; min-width:56px; flex:0 1 auto}
+.field > label{font-size:10.5px; color:var(--ink-3); letter-spacing:.03em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.field > label .q{color:var(--amber); font-weight:700; cursor:help}
+.field input.val{font:inherit; font-size:14px; font-variant-numeric:tabular-nums; text-align:right; width:100%;
+  padding:6px 8px; color:var(--ink); background:var(--input-bg); border:1px solid var(--input-line); border-radius:7px}
+.field input.val:focus{outline:2px solid var(--leaf); outline-offset:-1px; border-color:var(--leaf)}
+
+/* 편집 모드 필드 — 이름은 한 줄 전체, 버튼은 그 아래 */
+body.editmode .field{min-width:118px}
+.fedit{display:flex; flex-direction:column; gap:3px; margin-bottom:3px}
+.fedit .btns{display:flex; gap:3px}
+.fname{font:inherit; font-size:11.5px; font-weight:500; color:var(--edit); width:100%; min-width:0;
+  padding:3px 6px; background:var(--edit-soft); border:1px solid transparent; border-radius:5px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+input.fname:focus{border-color:var(--edit); outline:none}
+span.fname{display:block; color:var(--ink-2); background:var(--surface-2)}
+.mini{font:inherit; font-size:11px; line-height:1; cursor:pointer; background:var(--surface); color:var(--ink-3);
+  border:1px solid var(--line); border-radius:5px; padding:4px 7px; flex:1 1 auto}
+.mini:hover{border-color:var(--edit); color:var(--edit)}
+.mini.x:hover{border-color:var(--alert); color:var(--alert)}
+.mini.keep{flex:0 0 auto}
+.mini.clr{align-self:flex-end; padding:7px 11px; color:var(--ink-3)}
+.mini.clr:hover{border-color:var(--alert); color:var(--alert)}
+.mini.clr.undo{border-color:var(--leaf); color:var(--leaf); background:var(--leaf-soft); font-weight:600}
+.mini:disabled{opacity:.3; cursor:default}
+.mini:disabled:hover{border-color:var(--line); color:var(--ink-3)}
+
+.sep{height:1px; background:var(--line-2)}
+
+.res{display:grid; grid-template-columns:repeat(4,1fr); gap:8px}
+.res div{display:flex; flex-direction:column; gap:1px}
+.res dt{font-size:10.5px; color:var(--ink-3); letter-spacing:.03em}
+.res dd{margin:0; font-size:15px; font-weight:600; font-variant-numeric:tabular-nums; letter-spacing:-.01em}
+.res .neg dd{color:var(--alert)}
+.res .ok dd{color:var(--leaf)}
+
+.lotline{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.lotline .lbl{font-size:11.5px; color:var(--ink-2); font-weight:500}
+.lotline input{font:inherit; font-size:15px; font-weight:600; font-variant-numeric:tabular-nums; text-align:right;
+  width:82px; padding:5px 8px; color:var(--ink); background:var(--input-bg); border:1px solid var(--input-line); border-radius:7px}
+.pill{font-size:11px; padding:2px 8px; border-radius:99px; font-weight:500; background:var(--amber-soft); color:var(--amber)}
+.pill.leaf{background:var(--leaf-soft); color:var(--leaf)}
+.pill.alert{background:var(--alert-soft); color:var(--alert)}
+.pill.edit{background:var(--edit-soft); color:var(--edit)}
+.ghost{font:inherit; font-size:11px; cursor:pointer; background:none; border:1px solid var(--line); color:var(--ink-2); border-radius:99px; padding:2px 10px}
+.ghost:hover{border-color:var(--leaf); color:var(--leaf)}
+
+details.konti{border-top:1px solid var(--line-2); padding-top:9px}
+details.konti summary{font-size:11.5px; color:var(--ink-3); cursor:pointer; list-style:none}
+details.konti summary::-webkit-details-marker{display:none}
+details.konti summary::before{content:"▸ "}
+details.konti[open] summary::before{content:"▾ "}
+details.konti .inrow{margin-top:9px}
+.matbox{border:1px dashed var(--line); border-radius:8px; padding:7px 8px 8px; display:flex; flex-direction:column; gap:4px; flex:0 1 auto}
+.matgrid{display:flex; gap:4px}
+.matgrid .mf{display:flex; flex-direction:column; gap:2px; width:52px}
+.matgrid .mf span{font-size:9.5px; color:var(--ink-3)}
+.matgrid .mf input{font:inherit; font-size:12px; text-align:right; width:100%; padding:3px 5px; color:var(--ink);
+  background:var(--input-bg); border:1px solid var(--input-line); border-radius:5px; font-variant-numeric:tabular-nums}
+
+/* ---------- 표 ---------- */
+.tablewrap{overflow-x:auto; border:1px solid var(--line); border-radius:var(--r); background:var(--surface); box-shadow:var(--shadow)}
+table{border-collapse:collapse; width:100%; font-size:13px; min-width:520px}
+th,td{padding:7px 10px; text-align:right; border-bottom:1px solid var(--line-2); white-space:nowrap}
+th{font-weight:600; font-size:11px; color:var(--ink-3); letter-spacing:.04em; background:var(--surface-2); position:sticky; top:0}
+th:first-child,td:first-child{text-align:left; position:sticky; left:0; background:var(--surface)}
+th:first-child{background:var(--surface-2); z-index:2}
+td{font-variant-numeric:tabular-nums}
+tbody tr:hover td{background:var(--surface-2)}
+tr.total td{font-weight:700; border-top:2px solid var(--line); background:var(--surface-2)}
+th.grp{text-align:center; border-bottom:1px solid var(--line); border-left:1px solid var(--line);
+  color:var(--leaf); font-size:11.5px; letter-spacing:.02em}
+thead tr:first-child th[rowspan]{vertical-align:bottom}
+thead tr:nth-child(2) th{top:29px}
+td.zero{color:var(--ink-3)}
+td.short{color:var(--alert); font-weight:700}
+.secttl{display:flex; align-items:baseline; gap:10px; margin:24px 0 10px}
+.secttl h2{font-size:16px}
+.secttl span{font-size:11.5px; color:var(--ink-3)}
+.secttl:first-child{margin-top:0}
+
+/* ---------- 현장 지시 ---------- */
+.floor{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px}
+.fcard{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden}
+.fcard.idle{opacity:.45}
+.fcard-hd{padding:9px 12px; background:var(--leaf); color:var(--onaccent); display:flex; align-items:baseline; gap:8px}
+.fcard.idle .fcard-hd{background:var(--ink-3)}
+.fcard-hd h3{font-size:14.5px}
+.fcard-hd .lot{margin-left:auto; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums}
+.fcard ul{list-style:none; margin:0; padding:7px 0}
+.fcard li{display:flex; align-items:baseline; gap:8px; padding:5px 12px; font-size:14px}
+.fcard li .mn{color:var(--ink-2)}
+.fcard li .kt{margin-left:auto; font-variant-numeric:tabular-nums; font-weight:700; font-size:16px; text-align:right}
+.fcard li .kt small{display:block; font-weight:400; font-size:11px; color:var(--ink-3); margin-top:-2px}
+
+.printbar{display:flex; gap:9px; align-items:center; margin-bottom:16px; flex-wrap:wrap}
+.note{font-size:11.5px; color:var(--ink-3); margin-top:10px; line-height:1.6}
+.flag{background:var(--amber-soft); border-left:3px solid var(--amber); border-radius:0 8px 8px 0;
+  padding:10px 13px; font-size:12px; color:var(--ink-2); line-height:1.6; margin-top:16px}
+.flag b{color:var(--amber); font-weight:600}
+.hidden-box{background:var(--edit-soft); border:1px dashed var(--edit); border-radius:var(--r);
+  padding:11px 14px; margin-top:14px; font-size:12.5px; color:var(--ink-2)}
+.hidden-box .row{display:flex; flex-wrap:wrap; gap:7px; margin-top:8px}
+.hidpair{display:inline-flex; gap:2px}
+
+/* 새 제품 만들기 카드 */
+.newcard{font:inherit; text-align:left; cursor:pointer; color:var(--ink-2);
+  background:var(--surface-2); border:2px dashed var(--edit); box-shadow:none;
+  display:flex; flex-direction:column; align-items:flex-start; gap:5px;
+  padding:20px 18px; min-height:150px; justify-content:center}
+.newcard:hover{background:var(--edit-soft)}
+.newcard .plus{font-size:26px; line-height:1; color:var(--edit); font-weight:300}
+.newcard b{font-family:'Gowun Dodum',sans-serif; font-size:16px; font-weight:400; color:var(--edit)}
+.newcard span:last-child{font-size:12px; color:var(--ink-3); line-height:1.55}
+.newcard b:last-of-type{color:var(--ink-2)}
+
+/* 저장 상태 */
+.saveflag{font-size:11px; padding:3px 9px; border-radius:99px; white-space:nowrap;
+  background:var(--surface-2); color:var(--ink-3); border:1px solid var(--line)}
+.saveflag.ok{background:var(--leaf-soft); color:var(--leaf); border-color:transparent}
+.saveflag.busy{background:var(--amber-soft); color:var(--amber); border-color:transparent}
+.saveflag.local{background:var(--edit-soft); color:var(--edit); border-color:transparent}
+.saveflag.ro{background:var(--alert-soft); color:var(--alert); border-color:transparent}
+
+/* 집계 */
+.unitpick{display:flex; gap:2px; background:var(--surface-2); border:1px solid var(--line); border-radius:9px; padding:2px}
+.ubtn{font:inherit; font-size:12.5px; cursor:pointer; background:none; border:0; color:var(--ink-3);
+  padding:5px 11px; border-radius:7px; white-space:nowrap}
+.ubtn:hover{color:var(--ink-2)}
+.ubtn[aria-pressed="true"]{background:var(--leaf); color:var(--onaccent); font-weight:600}
+.tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr)); gap:12px; margin-bottom:6px}
+.tile{background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  padding:13px 15px; box-shadow:var(--shadow)}
+.tile dt{font-size:11px; color:var(--ink-3); letter-spacing:.03em; margin-bottom:3px}
+.tile dd{margin:0; font-size:23px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+.tile dd small{font-size:12px; font-weight:500; color:var(--ink-3); margin-left:3px}
+.backup{display:flex; flex-wrap:wrap; gap:9px; align-items:center;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px; box-shadow:var(--shadow)}
+.empty{padding:26px 16px; text-align:center; color:var(--ink-3); font-size:13px}
+
+[hidden]{display:none !important}
+@media (max-width:520px){ .res{grid-template-columns:repeat(2,1fr)} .brand h1{font-size:15px} }
+@media print{
+  .topbar,.printbar,.hint,.flag,.note,.toolbar,.hidden-box{display:none !important}
+  body{background:#fff; font-size:11px}
+  .wrap{padding:0; max-width:none}
+  .fcard,.tablewrap,.card{box-shadow:none; break-inside:avoid}
+  .floor{grid-template-columns:repeat(4,1fr); gap:7px}
+  .fcard-hd{background:#eee !important; color:#000 !important}
+  th,th:first-child,td:first-child{position:static}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important}}
+</style>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <h1>작업지시 계산판</h1>
+      <span class="tag">동김제농협 산지유통센터</span>
+    </div>
+    <div class="datefield">
+      <label for="workdate">작업일</label>
+      <input type="date" id="workdate">
+    </div>
+    <span class="saveflag" id="saveflag" title="">저장소 확인 중</span>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true"  data-view="input">① 출고량 입력</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="floor">② 현장 작업지시</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="sum">③ 원물 사용현황</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="log">④ 생산일지</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="rec">⑤ 기록·집계</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ① 입력 -->
+  <section id="v-input">
+    <div class="toolbar">
+      <button class="btn edit" id="editbtn">칸 편집하기</button>
+      <span class="note" style="margin:0" id="edithelp">칸 이름 변경·크기 조절·삭제·추가를 직접 하실 수 있습니다.</span>
+      <span class="spacer"></span>
+      <button class="btn sec" id="resetbtn" hidden>처음 상태로 되돌리기</button>
+      <span id="resetconfirm" hidden>
+        <button class="btn danger" id="resetyes">정말 되돌립니다</button>
+        <button class="btn sec" id="resetno">취소</button>
+      </span>
+    </div>
+
+    <div class="hint" id="hint-normal">
+      <div><b>노란 칸만 채우십시오.</b> 거래처별 출고량(EA)만 넣으면 필요 LOT·콘티수량·원물 소요량·현장 지시서가 전부 자동으로 나옵니다.
+      <b>전일재고는 ③ 원물 사용현황 화면에 당일재고를 입력하고 작업 마감(또는 날짜 변경)을 하시면 다음 날로 자동으로 넘어가 채워집니다</b>(직접 입력하실 필요 없습니다 — 실사값으로 고치고 싶으시면 그냥 덮어쓰시면 됩니다).
+      오늘 안 나가는 제품은 칸 끝의 <b>비우기</b>를 누르시면 그 제품 출고 수량이 한 번에 0이 됩니다(잘못 누르셨으면 바로 <b>되돌리기</b>).
+      물량이 모자라면 LOT를 직접 올리거나, 아래 <b>1회 배합 콘티수량</b>에서 배합을 조정하십시오.
+      <br>지금 화면에는 <b>2026-09-01 작업예시서의 실제 값</b>이 예시로 들어가 있습니다. 입력하신 내용은 이 브라우저에 자동 저장됩니다.</div>
+    </div>
+
+    <div class="hint editing" id="hint-edit" hidden>
+      <div><b>편집 모드입니다.</b> 칸 이름을 고쳐 쓰고, <b>◀ ▶</b>로 칸 너비를 줄이거나 늘리고, <b>✕</b>로 안 쓰는 칸을 없앨 수 있습니다.
+      <b>+ 거래처</b>로 칸을 새로 만들고, 제품 이름 옆 <b>↑ ↓</b>로 제품 순서를 옮기며, <b>✕ 제품</b>으로 제품 전체를 숨깁니다. 숨긴 제품은 맨 아래에서 되살리거나 아주 지우실 수 있습니다.
+      <br>제품 이름 아래 칸은 <b>제품명 옆에 붙는 설명</b>입니다. 안 맞으면 고쳐 쓰시고, 필요 없으시면 <b>비우시면 아예 안 보입니다</b>.
+      제품이 새로 생겼으면 맨 아래 <b>＋ 새 제품 만들기</b>를, 배합이 비슷한 제품이 이미 있으면 그 제품의 <b>복제</b>를 누르십시오 — 배합·콘티단위·거래처 칸이 그대로 따라오고 숫자만 비워집니다.
+      제품 순서는 현장 작업지시·생산일지·집계에도 그대로 따라갑니다.
+      <br>배합을 바꾸려면 <b>1회 배합 콘티수량</b>에서 원재료명·콘티단위(kg)·기준수율까지 바로 고치시면 됩니다. 고친 내용은 바로 저장됩니다.</div>
+    </div>
+
+    <div class="grid" id="cards"></div>
+    <div class="hidden-box" id="hiddenbox" hidden></div>
+    <div class="flag" id="flags"></div>
+  </section>
+
+  <!-- ② 현장 -->
+  <section id="v-floor" hidden>
+    <div class="printbar">
+      <button class="btn" id="printfloor">현장 배포용 인쇄</button>
+      <span class="note" style="margin:0">콘티 수가 위, 그 아래 작은 글씨가 <b>kg</b>입니다.</span>
+    </div>
+    <div class="secttl"><h2>현장 작업지시</h2><span id="floor-date"></span></div>
+    <div class="floor" id="floor"></div>
+    <div class="secttl"><h2>원재료별 총 절단량</h2><span>전 제품 합산 — 정선라인 투입 기준</span></div>
+    <div class="tablewrap"><table id="floor-mat"></table></div>
+  </section>
+
+  <!-- ③ 원물 재고 -->
+  <section id="v-sum" hidden>
+    <div class="printbar">
+      <button class="btn" id="printsum">인쇄</button>
+      <button class="btn sec" id="closeday">작업 마감 · <span id="next-date"></span>로 넘기기</button>
+      <button class="btn sec" id="undoclose" hidden>이월 되돌리기</button>
+      <span class="note" style="margin:0">노란 칸(전일 재고 · 원물 입고 · <b>당일재고</b>)만 손보시면 됩니다.</span>
+    </div>
+    <div class="hint">
+      <div><b>전일 재고 → 원물 사용량 → 당일재고</b> 순서로 읽으시면 됩니다.
+      <b>작업이 끝난 뒤 당일 원물 재고에 남은 양을 실사로 입력</b>하시면 <b>원물 수율 %</b>가 자동으로 계산됩니다.
+      <br><b>작업 마감</b>을 누르면(또는 날짜만 바꿔도) 당일재고에 입력하신 값이 다음 날 <b>전일 재고</b>로 넘어가고, 제품별 잔여재고(전일재고)도 함께 넘어갑니다. 출고량은 새 발주서를 받아 넣으실 수 있게 비워집니다.
+      당일재고를 입력하지 않은 원재료는 넘어가지 않으니 칸이 주황색일 때 확인하십시오.</div>
+    </div>
+    <div class="hint" id="endwarn" hidden style="border-color:var(--amber)"></div>
+    <div class="secttl"><h2>원물 사용현황</h2><span id="sum-date"></span></div>
+    <div class="tablewrap"><table id="sumtbl"></table></div>
+    <div class="note"><b>기준수율은 입력하지 않습니다.</b> 그날의 실제 수율이 자동으로 계산됩니다.<br>
+    전처리(오늘 실제 썬 양) = 가공 + 당일 전처리 재고 − 전일 전처리 재고 · 원물투입 = 전일 원물 + 원물 입고 − 당일 원물<br>
+    원물 수율 % = 전처리 ÷ 원물투입 (당일 원물 재고를 넣으면 계산됩니다. 당일 전처리 재고는 기본값 0이며 실제 남은 양이 있을 때만 고치시면 됩니다). 원물을 쓰지 않은 날은 "원물 미사용"으로 표시됩니다. 마이너스이거나 수율이 100%를 넘으면 "재고 확인"으로 표시됩니다.</div>
+  </section>
+
+  <!-- ⑤ 기록·집계 -->
+  <section id="v-rec" hidden>
+    <div class="printbar">
+      <div class="unitpick" id="unitpick" role="group" aria-label="집계 단위">
+        <button class="ubtn" data-unit="day">일별</button>
+        <button class="ubtn" data-unit="week">주간</button>
+        <button class="ubtn" data-unit="month" aria-pressed="true">월별</button>
+        <button class="ubtn" data-unit="quarter">분기</button>
+        <button class="ubtn" data-unit="half">반기</button>
+        <button class="ubtn" data-unit="year">연간</button>
+      </div>
+      <span style="display:flex; align-items:center; gap:6px">
+        <button class="btn sec" id="perprev" aria-label="이전 기간">◀</button>
+        <b id="perlabel" style="font-size:14px; min-width:150px; text-align:center">—</b>
+        <button class="btn sec" id="pernext" aria-label="다음 기간">▶</button>
+      </span>
+      <span class="spacer" style="margin-left:auto"></span>
+      <button class="btn" id="printrec">보고용 인쇄</button>
+      <button class="btn sec" id="savenow">오늘 기록 저장</button>
+    </div>
+
+    <div class="hint" id="rechint">
+      <div><b>작업 마감을 누르시면 그날 기록이 자동으로 저장됩니다.</b> 마감 전에 남겨 두고 싶으시면 <b>오늘 기록 저장</b>을 누르십시오.
+      저장된 기록은 아래에서 일별·주간·월별·분기·반기·연간으로 묶어 보실 수 있고, 그대로 인쇄해 센터장님께 보고하시면 됩니다.</div>
+    </div>
+
+    <div class="tiles" id="tiles"></div>
+
+    <div class="secttl"><h2>제품별 생산 실적</h2><span id="rec-sub1"></span></div>
+    <div class="tablewrap"><table id="rectbl-p"></table></div>
+
+    <div class="secttl"><h2>원재료별 사용량</h2><span>계획 기준 — 아래 수율표가 실측 대비입니다</span></div>
+    <div class="tablewrap"><table id="rectbl-m"></table></div>
+
+    <div class="secttl"><h2>수율 — 기준 대비 실적</h2><span id="rec-sub3"></span></div>
+    <div class="tablewrap"><table id="rectbl-y"></table></div>
+    <div class="note" id="yieldnote"></div>
+
+    <div class="secttl"><h2>수율 추이</h2><span>날짜별 실적수율 — 개선되고 있는지 보는 표입니다</span></div>
+    <div class="tablewrap"><table id="rectbl-t"></table></div>
+
+    <div class="secttl"><h2>일자별 내역</h2><span id="rec-sub2"></span></div>
+    <div class="tablewrap"><table id="rectbl-d"></table></div>
+
+    <div class="secttl"><h2>백업</h2><span>기록을 파일로 내려받거나 되돌립니다</span></div>
+    <div class="backup">
+      <button class="btn sec" id="expjson">전체 기록 백업 (JSON)</button>
+      <button class="btn sec" id="expcsv">이 기간 집계 내려받기 (CSV)</button>
+      <label class="btn sec" for="impfile" style="cursor:pointer">백업 파일에서 되돌리기</label>
+      <input type="file" id="impfile" accept=".json,application/json" hidden>
+      <span class="note" style="margin:0" id="bkmsg"></span>
+    </div>
+    <div class="note">백업 파일에는 저장된 모든 날짜의 기록과 제품·배합 설정이 함께 들어갑니다.
+    되돌리기를 하면 같은 날짜의 기록은 백업 파일 내용으로 덮어씁니다.</div>
+  </section>
+
+  <!-- ④ 생산일지 -->
+  <section id="v-log" hidden>
+    <div class="printbar">
+      <button class="btn" id="printlog">인쇄</button>
+      <span class="note" style="margin:0">위 입력값에서 자동 생성됩니다. 따로 옮겨 적을 것이 없습니다.</span>
+    </div>
+    <div class="secttl"><h2>일일 생산일지</h2><span id="log-date"></span></div>
+    <div class="tablewrap"><table id="logtbl"></table></div>
+    <div class="note">생산량(EA) = P/LOT × 총생산LOT · 절단량 = 콘티총수량 × 콘티단위 · 원물투입량 = 절단량 ÷ 기준수율<br>
+    실제 생산량·실적수율은 작업 종료 후 현장 실측값으로 덮어써야 합니다(이 화면은 계획값입니다).</div>
+  </section>
+
+</div>
+
+<script>
+/* ===================== 기준 데이터 (2026년 샐러드 작업예시서) ===================== */
+const DEFAULT_PRODUCTS = [
+ {id:'yangsangchu', nm:'CJ·동원 양상추', sub:'양상추 1kg', pack:1000, lot:1, stock:0,
+  mats:[{n:'양상추',k:19,u:4,y:.50}],
+  buyers:[{n:'CJ',v:9},{n:'아워홈',v:40},{n:'동원',v:24}]},
+
+ {id:'chaeso2', nm:'채소믹스2', sub:'포기상추류+케일 500g', pack:500, lot:1.5, stock:8,
+  mats:[{n:'로메인',k:5,u:4,y:.60},{n:'프릴',k:11,u:4,y:.63},{n:'카이피라',k:2,u:4,y:.64},{n:'케일',k:4,u:4,y:.77}],
+  buyers:[{n:'아워홈',v:0},{n:'동원',v:94},{n:'샐러링',v:85},{n:'CJ',v:5},{n:'군납',v:31}]},
+
+ {id:'slow', nm:'슬로우캘리', sub:'양상추 베이스 500g', pack:500, lot:4.5, stock:34,
+  mats:[{n:'양상추',k:11,u:4,y:.50},{n:'로메인',k:6,u:4,y:.57},{n:'프릴',k:8,u:4,y:.71},{n:'케일',k:3,u:4,y:.77}],
+  buyers:[{n:'출고',v:1014,w:140}]},
+
+ {id:'salleria', nm:'샐러리아', sub:'양상추 1kg', pack:1000, lot:2, stock:44,
+  mats:[{n:'양상추',k:20,u:4,y:.71},{n:'로메인',k:2,u:4,y:.70},{n:'라디치오',k:4,u:4,y:.68}],
+  buyers:[{n:'샐러리아',v:150},{n:'읍천리',v:37},{n:'2KG',v:4.5},{n:'아워홈',v:27},{n:'동원',v:12}]},
+
+ {id:'salledia', nm:'샐러디아·코지', sub:'포기상추류+라디치오 500g', pack:500, lot:2, stock:60,
+  mats:[{n:'로메인',k:8,u:4,y:.60},{n:'프릴',k:8,u:4,y:.63},{n:'카이피라',k:2,u:4,y:.64},{n:'라디치오',k:5,u:4,y:.68}],
+  buyers:[{n:'샐러디아',v:205},{n:'코지',v:74},{n:'CJ',v:41},{n:'아워홈',v:18,q:1},{n:'동원',v:15}]},
+
+ {id:'school', nm:'학교급식', sub:'샐러디아 배합 500g', pack:500, lot:0, stock:0,
+  mats:[{n:'로메인',k:4,u:4,y:.60},{n:'프릴',k:4,u:4,y:.63},{n:'카이피라',k:2,u:4,y:.64},{n:'라디치오',k:2.5,u:4,y:.68}],
+  buyers:[{n:'샐러디아',v:0},{n:'코지',v:0},{n:'CJ',v:0},{n:'아워홈',v:0},{n:'군납',v:18},{n:'동원',v:0}]},
+
+ {id:'ourhome', nm:'아워홈', sub:'로메인·치커리 500g', pack:500, lot:1, stock:15,
+  mats:[{n:'로메인',k:4,u:4,y:.66},{n:'치커리',k:4,u:4,y:.60},{n:'라디치오',k:3,u:4,y:.75},{n:'적근대',k:1.5,u:4,y:.66}],
+  buyers:[{n:'아워홈',v:84,q:1},{n:'동원',v:8,q:1}]},
+
+ {id:'cj1', nm:'CJ믹스1', sub:'양상추·적채·프릴·양배추 500g', pack:500, lot:1, stock:18,
+  mats:[{n:'양상추',k:2,u:4,y:.73},{n:'적채',k:2,u:4,y:.90},{n:'프릴',k:2,u:4,y:.59},{n:'양배추',k:2,u:4,y:.75}],
+  buyers:[{n:'CJ',v:55,q:1},{n:'동원',v:3}]},
+
+ {id:'cj2', nm:'CJ믹스2', sub:'양상추·적채·프릴·당근 500g', pack:500, lot:.5, stock:0,
+  mats:[{n:'양상추',k:1,u:4,y:.73},{n:'적채',k:1,u:4,y:.90},{n:'프릴',k:1,u:4,y:.59,load:3,q:1},{n:'당근',k:1,u:4,y:.75}],
+  buyers:[{n:'CJ',v:9,q:1}]},
+
+ {id:'chaeso3', nm:'채소믹스3', sub:'포기상추류 500g', pack:500, lot:.25, stock:0,
+  mats:[{n:'로메인',k:1,u:4,y:.60},{n:'프릴',k:1,u:4,y:.63},{n:'카이피라',k:.5,u:4,y:.64}],
+  buyers:[{n:'CJ',v:0},{n:'동원',v:0},{n:'CJ(제조)',v:1,w:92}]},
+
+ {id:'romain', nm:'로메인 단품', sub:'CJ범용 500g', pack:500, lot:1, stock:0,
+  mats:[{n:'로메인',k:1,u:3,y:.81}],
+  buyers:[{n:'CJ',v:6,q:1}]},
+
+ {id:'chicory', nm:'치커리 단품', sub:'500g', pack:500, lot:1, stock:0,
+  mats:[{n:'치커리',k:1,u:6,y:.81}],
+  buyers:[{n:'CJ',v:11,q:1}]},
+
+ {id:'g100', nm:'100g 생산', sub:'포기상추류+라디치오 100g', pack:100, lot:.5, stock:0,
+  mats:[{n:'로메인',k:1,u:4,y:.60},{n:'프릴',k:1,u:4,y:.63},{n:'카이피라',k:.5,u:4,y:.64},{n:'라디치오',k:.5,u:4,y:.68}],
+  buyers:[{n:'출고',v:0},{n:'폐기',v:0}]},
+
+ {id:'yswonmul', nm:'양상추 원물', sub:'박스 2kg 단위', pack:2000, lot:1, stock:0, unitLabel:'박스',
+  mats:[{n:'양상추',k:10,u:2,y:.66}],
+  buyers:[{n:'CJ',v:1,q:1},{n:'동원',v:2,q:1}]},
+];
+
+const MATS = ['로메인','프릴','카이피라','라디치오','케일','치커리','적근대','적채','양배추','당근','양상추'];
+/* 수율은 입력하지 않습니다 — ③ 화면의 당일재고(실사)로 그날 실적 수율이 자동 계산됩니다.
+   (2026-10-15 권화선 팀장님 요청: 기준수율 입력 폐지, '원물 수율 %' 자동계산) */
+/* 어제 남은 원물 (2층, 썰기 전) — 합계 시트 10행 */
+const RAW0 = {로메인:433,프릴:144,카이피라:88,라디치오:420,케일:0,치커리:24,적근대:30,적채:50,양배추:12,당근:0,양상추:0};
+/* 어제 썰어 놓은 것 (전처리 완료품) — 합계 시트 13행 */
+const PRE0 = {로메인:0,프릴:236,카이피라:24,라디치오:0,케일:40,치커리:0,적근대:0,적채:0,양배추:0,당근:0,양상추:0};
+const ZERO = ()=>{ const o={}; MATS.forEach(m=>o[m]=0); return o; };
+const DEFW = 76;                       // 칸 기본 너비(px)
+const STORE = 'dkj1f-jakup-v3';
+
+/* ═══════════════════════════════════════════════════════════════════
+   Firebase 설정 — GitHub Pages(qaplus.kr)에 올리실 때 이 칸만 채우십시오.
+   비워 두면 이 브라우저에만 저장됩니다. 값은 Firebase 콘솔의
+   프로젝트 설정 → 내 앱 → 웹 앱에서 그대로 복사하시면 됩니다.
+   ═══════════════════════════════════════════════════════════════════ */
+const FIREBASE = {
+  apiKey:            "AIzaSyBOuxFAzu7_vkbvbhVOGqyIo5cyu7u5jv4",
+  authDomain:        "dkj-jakup.firebaseapp.com",
+  projectId:         "dkj-jakup",
+  storageBucket:     "dkj-jakup.firebasestorage.app",
+  messagingSenderId: "622794086645",
+  appId:             "1:622794086645:web:60b788282cec99e1d04dbc"
+};
+const FB_ROOT = "dkj1f";      // 여러 사업장을 한 프로젝트에서 쓰실 때 구분용
+
+const clone = o => JSON.parse(JSON.stringify(o));
+const fresh = ()=>({ date:'2026-09-01', products:clone(DEFAULT_PRODUCTS),
+                     rawOpen:{...RAW0}, preOpen:{...PRE0}, rawIn:ZERO(),
+                     endRaw:{}, endPre:{}, rawOpenManual:{}, preOpenManual:{}, prev:null });   // endRaw/endPre = 당일재고(원물/전처리) 실사 입력 — 키가 없으면 미입력
+
+let S = fresh();
+let BOOTING = true;      // 저장소에서 설정을 읽어 올 때까지 쓰기를 막습니다
+
+/* ───────── 저장소 어댑터 ─────────
+   ① Firebase   — GitHub Pages / qaplus.kr. 여러 사람이 실시간으로 같은 기록을 봅니다.
+   ② 아티팩트 db — claude.ai 링크로 여실 때.
+   ③ 브라우저    — 위 둘 다 없을 때. 이 브라우저에만 남습니다.            */
+const Store = {
+  mode:'local', label:'이 브라우저에만 저장', canWrite:true, _db:null, _fb:null, _t:null,
+
+  async init(){
+    if(FIREBASE.apiKey){
+      try{
+        const [{initializeApp},{getFirestore,doc,getDoc,setDoc,deleteDoc,collection,getDocs,query,where,orderBy,onSnapshot},
+               {getAuth,signInAnonymously}] = await Promise.all([
+          import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'),
+          import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js'),
+          import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js')]);
+        const app = initializeApp(FIREBASE);
+        await signInAnonymously(getAuth(app));
+        this._fb = {fs:getFirestore(app), doc, getDoc, setDoc, deleteDoc, collection, getDocs, query, where, orderBy, onSnapshot};
+        this.mode='firebase'; this.label='실시간 공유 중';
+        return;
+      }catch(e){ console.warn('Firebase 연결 실패 — 브라우저 저장으로 전환합니다.', e); }
+    }
+    if(window.claude && typeof window.claude.use === 'function'){
+      try{
+        const db = await window.claude.use('db');
+        if(db){
+          this._db = db; this.mode='claude'; this.label='공유 저장소';
+          try{
+            const u = await window.claude.use('user');
+            const w = u ? await u.can('data.write') : null;
+            if(w === false){ this.canWrite=false; this.label='보기 전용'; }
+          }catch(e){}
+          return;
+        }
+      }catch(e){}
+    }
+  },
+
+  /* 설정(제품·배합·재고) */
+  async loadConfig(){
+    if(this.mode==='firebase'){
+      const f=this._fb, s=await f.getDoc(f.doc(f.fs, FB_ROOT+'_config','master'));
+      return s.exists() ? s.data() : null;
+    }
+    if(this.mode==='claude'){
+      const s = await this._db.doc('config/master').get();
+      return s.exists ? s.data() : null;
+    }
+    try{
+      const v3 = JSON.parse(localStorage.getItem(STORE)||'null');
+      if(v3 && Array.isArray(v3.products) && v3.products.length) return v3;
+      const v2 = JSON.parse(localStorage.getItem('dkj1f-jakup-v2')||'null');
+      if(v2 && Array.isArray(v2.products) && v2.products.length)
+        return {date:v2.date, products:v2.products, rawOpen:v2.rawstock, preOpen:{...PRE0}, rawIn:ZERO()};
+    }catch(e){}
+    return null;
+  },
+
+  saveConfig(immediate=false){             // 제품·거래처·카드 순서는 즉시, 나머지는 연타를 모아 저장
+    if(BOOTING) return;
+    const commit = async()=>{
+      const body = configSnapshot();
+      try{
+        if(this.mode==='firebase'){ const f=this._fb; await f.setDoc(f.doc(f.fs, FB_ROOT+'_config','master'), body); }
+        else if(this.mode==='claude') await this._db.doc('config/master').set(body);
+        flag('ok', this.label);
+      }catch(e){ flag('ro','저장 실패'); console.warn(e); }
+    };
+    try{ localStorage.setItem(STORE, JSON.stringify(configSnapshot())); }catch(e){}
+    if(this.mode==='local' || !this.canWrite) return;
+    clearTimeout(this._t);
+    flag('busy','저장 중');
+    if(immediate) return commit();
+    this._t = setTimeout(commit, 900);
+  },
+
+  /* 일일 기록 */
+  async putDay(date, rec){
+    try{ localStorage.setItem('dkj1f-day-'+date, JSON.stringify(rec)); }catch(e){}
+    if(this.mode==='local' || !this.canWrite) return true;
+    try{
+      if(this.mode==='firebase'){ const f=this._fb; await f.setDoc(f.doc(f.fs, FB_ROOT+'_days', date), rec); }
+      else await this._db.doc('days/'+date).set(rec);
+      return true;
+    }catch(e){ console.warn(e); return false; }
+  },
+
+  async getDay(date){
+    try{
+      if(this.mode==='firebase'){ const f=this._fb, s=await f.getDoc(f.doc(f.fs, FB_ROOT+'_days', date)); return s.exists() ? s.data() : null; }
+      if(this.mode==='claude'){ const s=await this._db.doc('days/'+date).get(); return s.exists ? s.data() : null; }
+      return JSON.parse(localStorage.getItem('dkj1f-day-'+date)||'null');
+    }catch(e){ console.warn(e); return null; }
+  },
+
+  async allDays(){
+    if(this.mode==='firebase'){
+      const f=this._fb, snap=await f.getDocs(f.collection(f.fs, FB_ROOT+'_days'));
+      return snap.docs.map(d=>d.data());
+    }
+    if(this.mode==='claude'){
+      const snap = await this._db.collection('days').limit(1000).get();
+      return snap.docs.map(d=>d.data());
+    }
+    const out=[];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k && k.startsWith('dkj1f-day-')){ try{ out.push(JSON.parse(localStorage.getItem(k))); }catch(e){} }
+    }
+    return out;
+  }
+};
+
+function flag(kind, text){
+  const e=document.getElementById('saveflag'); if(!e) return;
+  e.className='saveflag '+(kind||''); e.textContent=text;
+}
+function configSnapshot(){
+  const products = clone(S.products).map(p=>{
+    p.stock=0; p.lot=0; p.autoLot=true;
+    p.buyers.forEach(b=>b.v=0);
+    return p;
+  });
+  return {version:4, date:S.date, products, updatedAt:new Date().toISOString()};
+}
+function dayState(){
+  return {products:S.products.map(p=>({id:p.id, stock:+p.stock||0, stockManual:!!p.stockManual, lot:+p.lot||0, autoLot:!!p.autoLot,
+    buyers:p.buyers.map(b=>+b.v||0), mats:p.mats.map(m=>{ const d={k:+m.k||0,u:+m.u||0,y:+m.y||0}; if(m.load!=null) d.load=+m.load||0; return d; })})),
+    rawOpen:clone(S.rawOpen), preOpen:clone(S.preOpen), rawIn:clone(S.rawIn),
+    endRaw:clone(S.endRaw||{}), endPre:clone(S.endPre||{}),
+    rawOpenManual:clone(S.rawOpenManual||{}), preOpenManual:clone(S.preOpenManual||{})};
+}
+function applyDayState(state){
+  const days=new Map((state.products||[]).map(p=>[p.id,p]));
+  S.products.forEach(p=>{
+    const d=days.get(p.id); if(!d) return;
+    p.stock=+d.stock||0; p.stockManual=!!d.stockManual; p.lot=+d.lot||0; p.autoLot=d.autoLot!==false;
+    p.buyers.forEach((b,i)=>{ if(d.buyers && d.buyers[i]!=null) b.v=+d.buyers[i]||0; });
+    p.mats.forEach((m,i)=>{ const dm=d.mats&&d.mats[i]; if(!dm) return;
+      if(dm.k!=null) m.k=+dm.k||0; if(dm.u!=null) m.u=+dm.u||0; if(dm.y!=null) m.y=+dm.y||0;
+      if(dm.load==null) delete m.load; else m.load=+dm.load||0;
+    });
+  });
+  S.rawOpen={...ZERO(),...(state.rawOpen||{})}; S.preOpen={...ZERO(),...(state.preOpen||{})};
+  S.rawIn={...ZERO(),...(state.rawIn||{})};
+  S.endRaw={...(state.endRaw||{})}; S.endPre={...(state.endPre||{})};
+  S.rawOpenManual={...(state.rawOpenManual||{})}; S.preOpenManual={...(state.preOpenManual||{})};   // 직접 고친 전일 재고 칸 표시
+}
+function blankDay(){
+  S.products.forEach(p=>{ p.stock=0; p.stockManual=false; p.lot=0; p.autoLot=true; p.buyers.forEach(b=>b.v=0); });
+  S.rawOpen=ZERO(); S.preOpen=ZERO(); S.rawIn=ZERO(); S.endRaw={}; S.endPre={}; S.rawOpenManual={}; S.preOpenManual={};
+}
+let DAY_SAVE_TIMER=null, IGNORE_SAVE=false;
+function queueDaySave(immediate=false){
+  if(BOOTING || IGNORE_SAVE) return;
+  const commit=()=>{ DAY_SAVE_TIMER=null; saveToday(true); };
+  clearTimeout(DAY_SAVE_TIMER);
+  if(immediate) commit(); else DAY_SAVE_TIMER=setTimeout(commit,900);
+}
+/* 실제 입력(900ms 디바운스 저장)이 아직 반영 전인 경우에만 지금 바로 저장을 확정합니다.
+   아무것도 입력하지 않고 날짜만 들여다본 경우엔 저장할 게 없으므로 그냥 넘어갑니다 —
+   그래야 "안 쓴 날짜를 미리 봤다가 빈 기록이 남아서, 나중에 전날 마감의 전일재고 자동
+   이월값을 그 빈 기록이 덮어써버리는" 문제가 생기지 않습니다. */
+function flushDaySave(){
+  if(DAY_SAVE_TIMER!=null){ clearTimeout(DAY_SAVE_TIMER); DAY_SAVE_TIMER=null; return saveToday(true); }
+  return Promise.resolve(true);
+}
+function save(immediate=false){
+  if(IGNORE_SAVE) return;
+  Store.saveConfig(immediate); queueDaySave(immediate);
+}
+/* 어떤 날짜 기록이 "팀장님이 실제로 입력해 둔" 것인지, 그냥 비어 있는(또는 자동으로
+   저장만 됐던) 기록인지 구분합니다. 전일재고 자동 이월값(rawOpen/preOpen/stock)은
+   여기서 일부러 보지 않습니다 — 그건 이월이 채워 넣는 값 자체라서, 그것만 있다고
+   "진짜 입력이 있다"고 보면 다음 이월을 영영 못 하게 됩니다. */
+function stateHasRealInput(state){
+  if(!state) return false;
+  const nz = v => Math.abs(+v||0) > 1e-9;
+  const mapNZ = obj => !!obj && Object.values(obj).some(nz);
+  if(state.products && state.products.some(p =>
+       (p.buyers && p.buyers.some(nz)) || nz(p.lot) || p.autoLot===false || p.stockManual)) return true;
+  if(mapNZ(state.rawIn) || mapNZ(state.actRaw) || mapNZ(state.actCut) || mapNZ(state.preAdd)) return true;   // 옛 형식 기록 호환
+  if((state.endRaw && Object.keys(state.endRaw).length) || (state.endPre && Object.keys(state.endPre).length)) return true;   // 당일재고는 0도 입력입니다
+  return false;
+}
+/* 지금 보고 있는(떠나려는) 날짜를 기준으로, 다음 날로 넘길 원물·제품재고를 미리 계산합니다.
+   closeDay()와 switchDay()(다음 날로 넘어갈 때)가 공통으로 씁니다 — 날짜를 바꾸기 전에,
+   상태를 건드리기 전에 호출해야 합니다. */
+function computeCarryForward(){
+  const t = matTotals();
+  const rawOpen={}, preOpen={}, missing=[];
+  matList().forEach(m=>{
+    const r=stockRow(m,t);
+    // 이월은 "당일재고로 입력하신 값"만 넘어갑니다(수율 없이는 남은 양을 계산으로 알 수 없습니다)
+    if(r.hasEndRaw) rawOpen[m]=Math.max(0,r.endRaw);
+    if(r.hasEndPre) preOpen[m]=Math.max(0,r.endPre);
+    const active = r.cutNeed>0 || r.rawOpen>0 || r.preOpen>0 || r.rawIn>0;
+    if(active && !(r.hasEndRaw && r.hasEndPre)) missing.push(m);
+  });
+  const stockById = {};
+  S.products.forEach(p=>{ stockById[p.id] = Math.max(0, Math.round((calc(p).rest||0)*100)/100); });
+  return {rawOpen, preOpen, stockById, missing};
+}
+/* 목표 날짜 "직전의 진짜 입력이 있는 기록"을 찾아 그 날 기준으로 이월값을 계산합니다(날짜를 건너뛰거나 중간 날짜를 거쳐도 이어집니다). */
+const CARRY_LOOKBACK = 14;
+async function carryForDate(date){
+  for(let i=1;i<=CARRY_LOOKBACK;i++){
+    const d = addDay(date,-i);
+    if(d===S.date){
+      if(stateHasRealInput(dayState())) return computeCarryForward();
+      continue;
+    }
+    const r = await Store.getDay(d);
+    if(!(r && r.state && stateHasRealInput(r.state))) continue;
+    const snap = dayState();
+    applyDayState(r.state);
+    const cf = computeCarryForward();
+    applyDayState(snap);
+    return cf;
+  }
+  return null;
+}
+/* 직전 작업일의 당일재고로 오늘의 전일 재고(원물·전처리·제품 잔여재고)를 다시 이어줍니다.
+   팀장님이 직접 숫자를 고치신 칸(…Manual)만 그대로 두고, 나머지는 이월값으로 갱신합니다.
+   — 2일자에 이미 입고 등을 입력해 둔 뒤 1일자 당일재고를 넣어도(또는 예전 이월값이 남아 있어도) 따라오게 하기 위함 */
+function applyCarryToCurrent(cf){
+  if(!cf) return;
+  S.products.forEach(p=>{ if(!p.stockManual && cf.stockById[p.id]!=null) p.stock=cf.stockById[p.id]; });
+  Object.keys(cf.rawOpen).forEach(m=>{ if(!S.rawOpenManual[m]) S.rawOpen[m]=cf.rawOpen[m]; });
+  Object.keys(cf.preOpen).forEach(m=>{ if(!S.preOpenManual[m]) S.preOpen[m]=cf.preOpen[m]; });
+}
+async function switchDay(date){
+  if(!date || date===S.date) return;
+  await flushDaySave();                          // 입력하신 게 있으면 넘어가기 전에 먼저 확정 저장
+  const cf = await carryForDate(date);           // 날짜를 바꾸기 전에, 직전 작업일 기준으로 미리 계산해 둡니다
+  const rec = await Store.getDay(date);
+  S.date=date;
+  const real = rec && rec.state && stateHasRealInput(rec.state);
+  if(real){
+    applyDayState(rec.state);                    // 실제로 입력해 둔 값이 있으면 그걸 보호합니다
+    applyCarryToCurrent(cf);                     // 단, 직접 고치지 않은 전일 재고는 직전 작업일 당일재고로 다시 이어줍니다
+  } else if(cf){
+    // 아직 아무 입력도 없으면 — 작업 마감을 누른 것과 똑같이 전일재고를 이어줍니다.
+    blankDay();
+    S.rawOpen={...ZERO(), ...cf.rawOpen}; S.preOpen={...ZERO(), ...cf.preOpen};
+    S.products.forEach(p=>{ if(cf.stockById[p.id]!=null) p.stock=cf.stockById[p.id]; });
+  } else {
+    blankDay();
+  }
+  document.getElementById('workdate').value=S.date;
+  REC.anchor=new Date(S.date+'T00:00:00');
+  IGNORE_SAVE=true; rebuild(); IGNORE_SAVE=false;
+  /* 주의: 아직 아무것도 입력하지 않은 날짜를 "미리 들여다보기만" 해도 빈 기록을 바로 저장하지 않습니다 —
+     입력 리스너의 save()가 실제 입력이 들어올 때 처리합니다. */
+  setText('bkmsg', rec && !rec.state ? '이전 형식의 요약 기록입니다. 상세 입력값은 이번 버전부터 날짜별로 저장됩니다.' :
+                    (rec ? S.date+' 입력 DB를 불러왔습니다.' : S.date+'은 새 입력 화면입니다.'));
+}
+
+const addDay = (d,n)=>{ const t=new Date(d+'T00:00:00'); t.setDate(t.getDate()+n);
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`; };
+
+let EDIT = false;
+
+/* ===================== 계산 ===================== */
+function calc(p){
+  const activeMats = p.mats.filter(m => !m.deleted);
+  const loads   = activeMats.map(m => m.load!=null ? m.load : (+m.k||0)*(+m.u||0));
+  const loadSum = loads.reduce((a,b)=>a+b,0);
+  const perLot  = p.pack>0 ? loadSum*1000/p.pack : 0;
+  const out     = p.buyers.reduce((a,b)=>a+(+b.v||0),0);
+  const need    = Math.max(0, out-(+p.stock||0));
+  const recLot  = perLot>0 ? Math.ceil(need/perLot/0.25)*0.25 : 0;
+  /* 마감 직후(새 날)에는 출고량만 넣으면 LOT가 따라 잡힙니다.
+     팀장님이 LOT를 직접 치시는 순간 수동으로 잠깁니다. */
+  const lot     = p.autoLot ? recLot : (+p.lot||0);
+  const cap     = perLot*lot;
+  const rest    = (+p.stock||0)+cap-out;
+  const rows = activeMats.map((m,i)=>{
+    const kt  = lot*(+m.k||0);            // 콘티총수량
+    const cut = kt*(+m.u||0);             // 절단량 kg
+    return {n:m.n, unit:+m.u||0, konti:+m.k||0, kt, cut,
+            ratio: loadSum? loads[i]/loadSum : 0};
+  });
+  return {perLot, out, need, recLot, lot, cap, rest, rows, loadSum};
+}
+const vis = ()=> S.products.filter(p=>!p.hidden);
+
+/* ===================== 표시 형식 ===================== */
+const fmt = (n,d=0)=> (n==null||isNaN(n))?'—':Number(n).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const f1  = n=> Math.abs(n-Math.round(n))<1e-9 ? fmt(n,0) : fmt(n,1);
+const f2  = n=> Math.abs(n-Math.round(n))<1e-9 ? fmt(n,0) : Number(n).toLocaleString('ko-KR',{maximumFractionDigits:2});
+/* 현장은 kg이 주 단위 — 콘티는 투입 단위로만 작게 병기 */
+function floorQty(kt, unit, label){
+  return { kg:f1(kt*unit)+'kg', konti:f2(kt)+(label||'콘티') };
+}
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const setText = (id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
+
+/* ===================== 카드 ===================== */
+/* 한 제품의 금일 출고 수량을 한 번에 비우기 (되돌리기 8초) */
+let CLR = null;
+function clearProduct(id){
+  const p = S.products.find(x=>x.id===id); if(!p) return;
+  if(CLR) clearTimeout(CLR.timer);
+  CLR = {id, out:p.buyers.map(b=>+b.v||0), lot:p.lot, autoLot:!!p.autoLot,
+         timer:setTimeout(()=>{ CLR=null; refreshCards(); }, 8000)};
+  p.buyers.forEach(b=>b.v=0);
+  p.lot = 0; p.autoLot = true;      // 오늘 안 나가는 제품이니 현장 지시서에서도 빠집니다
+  save(true);                        // 비우기 직전 상태와 변경값을 날짜 DB에 즉시 반영
+  refresh(); syncOutInputs(p);
+}
+function undoClear(){
+  if(!CLR) return;
+  const p = S.products.find(x=>x.id===CLR.id);
+  if(p){ CLR.out.forEach((v,i)=>{ if(p.buyers[i]) p.buyers[i].v=v; });
+         p.lot=CLR.lot; p.autoLot=CLR.autoLot; }
+  clearTimeout(CLR.timer); CLR=null;
+  refresh(); if(p) syncOutInputs(p);
+}
+function syncOutInputs(p){          // 입력칸은 다시 그리지 않으므로 값만 갈아 끼웁니다
+  p.buyers.forEach((b,i)=>{ const el=document.getElementById(`out-${p.id}-${i}`); if(el) el.value=b.v; });
+  const l=document.getElementById('lot-'+p.id); if(l) l.value=f2(calc(p).lot);
+}
+
+/* 제품 새로 만들기 · 복제 · 완전히 지우기 */
+const newId = ()=> 'p' + Date.now().toString(36) + Math.floor(Math.random()*900+100);
+
+function addProduct(){
+  const p = {id:newId(), nm:'새 제품', sub:'', pack:500, lot:0, autoLot:true, stock:0,
+             mats:[{n:'새 원재료', k:1, u:4, y:0.6}],
+             buyers:[{n:'새 거래처', v:0}]};
+  S.products.push(p); rebuild(); focusName(p.id);
+}
+function copyProduct(id){
+  const i = S.products.findIndex(p=>p.id===id); if(i<0) return;
+  const c = clone(S.products[i]);
+  c.id = newId(); c.nm = S.products[i].nm + ' (복사)';
+  c.stock = 0; c.lot = 0; c.autoLot = true; c.hidden = false;
+  c.buyers.forEach(b=>{ b.v = 0; delete b.q; });    // 배합·거래처 칸은 그대로, 숫자만 비웁니다
+  S.products.splice(i+1, 0, c); rebuild(); focusName(c.id);
+}
+function dropProduct(id){
+  const i = S.products.findIndex(p=>p.id===id); if(i<0) return;
+  S.products.splice(i,1); rebuild();
+}
+function focusName(id){
+  const el = document.querySelector(`[data-pn="${id}"]`);
+  if(el){ el.scrollIntoView({block:'center'}); el.focus(); el.select(); }
+}
+
+/* 제품 카드 순서 바꾸기 — 숨긴 제품은 건너뜁니다 */
+function moveProduct(id, dir){
+  const L = S.products, i = L.findIndex(p=>p.id===id);
+  if(i < 0) return;
+  let j = i + dir;
+  while(j >= 0 && j < L.length && L[j].hidden) j += dir;
+  if(j < 0 || j >= L.length) return;
+  [L[i], L[j]] = [L[j], L[i]];
+  save(true);                               // 카드 순서는 클릭 즉시 저장해 새로고침에도 유지합니다
+  rebuild();
+}
+
+function buildCards(){
+  const V = vis();
+  document.getElementById('cards').innerHTML = V.map((p,vi)=>{
+    const c = calc(p);
+    return `<div class="card" id="card-${p.id}">
+      <div class="card-hd">
+        ${EDIT
+          ? `<input class="fname" style="font-size:14px;flex:1 1 90px;width:auto" value="${esc(p.nm)}" data-pn="${p.id}" aria-label="제품명">
+             <span class="hbtns">
+               <button class="mini keep" data-mv="${p.id}|-1" title="위로 옮기기"${vi===0?' disabled':''}>↑</button>
+               <button class="mini keep" data-mv="${p.id}|1"  title="아래로 옮기기"${vi===V.length-1?' disabled':''}>↓</button>
+               <button class="mini keep" data-cp="${p.id}" title="이 제품을 배합 그대로 복제">복제</button>
+               <button class="mini x keep" data-hide="${p.id}" title="이 제품 숨기기">✕ 제품</button>
+             </span>
+             <input class="fname fsub" value="${esc(p.sub||'')}" data-ps="${p.id}"
+                    placeholder="제품명 옆 설명 — 비우시면 안 보입니다" aria-label="제품 설명">`
+          : `<h3>${esc(p.nm)}</h3>${p.sub?`<span class="sub">${esc(p.sub)}</span>`:''}`}
+        <span style="display:flex;gap:6px;align-items:center;margin-left:auto">
+          <button class="mini ghost" data-ulabel="${p.id}" title="입력 단위 선택: 콘티 또는 kg" style="font-size:11px;padding:4px 9px">${p.unitLabel||'콘티'}</button>
+          <span class="plot num" id="plot-${p.id}"></span>
+        </span>
+      </div>
+      <div class="card-bd">
+        <div class="inrow">
+          <div class="field" style="flex-basis:${p.stockW||DEFW}px">
+            ${EDIT ? `<div class="fedit">
+                <span class="fname">전일재고</span>
+                <div class="btns">
+                  <button class="mini" data-wid="${p.id}|stock|-" title="칸 줄이기">◀</button>
+                  <button class="mini" data-wid="${p.id}|stock|+" title="칸 늘리기">▶</button>
+                </div>
+              </div>`
+             : `<label for="st-${p.id}">전일재고${p.stockManual?'<span class="q" style="color:var(--leaf)" title="실사로 직접 입력·수정하신 값입니다. 자동 이월값이 아닙니다.">실사</span>':''}</label>`}
+            <input class="val" type="number" id="st-${p.id}" value="${p.stock}" data-p="${p.id}" data-k="stock" step="any" inputmode="decimal"
+                   style="${p.stockManual?'background:var(--leaf-soft);border-color:var(--leaf)':''}">
+          </div>
+          ${p.buyers.map((b,i)=>`<div class="field" style="flex-basis:${b.w||DEFW}px">
+            ${EDIT ? `<div class="fedit">
+                <input class="fname" value="${esc(b.n)}" data-bn="${p.id}|${i}" aria-label="거래처명">
+                <div class="btns">
+                  <button class="mini" data-wid="${p.id}|${i}|-" title="칸 줄이기">◀</button>
+                  <button class="mini" data-wid="${p.id}|${i}|+" title="칸 늘리기">▶</button>
+                  <button class="mini x" data-delb="${p.id}|${i}" title="이 칸 없애기">✕</button>
+                </div>
+              </div>`
+             : `<label for="out-${p.id}-${i}">${esc(b.n)}${b.q?'<span class="q" title="[확인 필요] 원본 작업예시서에 거래처명 칸이 비어 있어 추정한 이름입니다.">?</span>':''}</label>`}
+            <input class="val" type="number" id="out-${p.id}-${i}" value="${b.v}" data-p="${p.id}" data-k="out" data-i="${i}" step="any" inputmode="decimal">
+          </div>`).join('')}
+          ${EDIT ? `<button class="mini keep" data-addb="${p.id}" style="padding:8px 11px;align-self:flex-end">+ 거래처</button>`
+                 : `<button class="mini keep clr" data-clr="${p.id}" id="clr-${p.id}"
+                      title="이 제품의 오늘 출고 수량을 한 번에 0으로">비우기</button>`}
+        </div>
+
+        <div class="sep"></div>
+
+        <div class="lotline">
+          <label class="lbl" for="lot-${p.id}">총생산 LOT</label>
+          <input type="number" id="lot-${p.id}" value="${f2(c.lot)}" data-p="${p.id}" data-k="lot" step="0.25" inputmode="decimal">
+          <span class="pill" id="pill-${p.id}"></span>
+          <button class="ghost" data-apply="${p.id}" id="apply-${p.id}" hidden>필요값 적용</button>
+        </div>
+
+        <dl class="res">
+          <div><dt>출고 합계</dt><dd class="num" id="r-out-${p.id}"></dd></div>
+          <div><dt>필요 생산</dt><dd class="num" id="r-need-${p.id}"></dd></div>
+          <div><dt>생산가능</dt><dd class="num" id="r-cap-${p.id}"></dd></div>
+          <div id="r-rest-w-${p.id}"><dt>잔여재고</dt><dd class="num" id="r-rest-${p.id}"></dd></div>
+        </dl>
+
+        <details class="konti" open>
+          <summary onclick="return false">1회 배합 콘티수량 · 배합비 편집</summary>
+          <div class="inrow">
+            ${(()=>{ let vi=-1; return p.mats.map((m,i)=>{
+              if(!m.deleted) vi++;
+              const ri = vi;   // 배합비(ratio)/콘티수량 DOM id는 활성(비삭제) 원재료 순번 기준 — calc().rows와 일치시킴
+              return `<div class="matbox">
+                   <div class="fedit" style="flex-direction:row;align-items:center;gap:3px">
+                     <input class="fname" value="${esc(m.n)}" data-mn="${p.id}|${i}" aria-label="원재료명"${m.deleted?' style="opacity:0.5"':''}>
+                     <button class="mini ${m.deleted?'':'x'} keep" data-${m.deleted?'recov':'delm'}="m-${p.id}-${i}" title="${m.deleted?'이 원재료 복원':'이 원재료 삭제'}" style="${m.deleted?'border-color:var(--leaf);color:var(--leaf)':''}">${m.deleted?'↩':'✕'}</button>
+                   </div>
+                   <div class="matgrid">
+                     <label class="mf"><span>콘티수량</span><input type="number" value="${m.k}" data-p="${p.id}" data-k="konti" data-i="${i}" step="0.5" inputmode="decimal"${m.deleted?' disabled':''}></label>
+                     <label class="mf"><span>콘티 kg</span><input type="number" value="${m.u}" data-p="${p.id}" data-k="unit" data-i="${i}" step="any" inputmode="decimal"${m.deleted?' disabled':''}></label>
+                   </div>
+                   ${m.deleted?'':`<span style="font-size:10px;color:var(--ink-3)">배합비 <b id="ratio-${p.id}-${ri}"></b></span>`}
+                 </div>`; }).join(''); })()}
+            <button class="mini keep" data-addm="${p.id}" style="padding:8px 11px;align-self:center">+ 원재료</button>
+          </div>
+          <div class="note">포장중량 <input type="number" value="${p.pack}" data-p="${p.id}" data-k="pack" step="any" inputmode="decimal"
+                     style="font:inherit;font-size:12px;width:72px;text-align:right;padding:2px 5px;background:var(--input-bg);border:1px solid var(--input-line);border-radius:5px;color:var(--ink)"> g/EA
+                   — 이 값과 적재량으로 P/LOT가 정해집니다.</div>
+        </details>
+      </div>
+    </div>`;
+  }).join('') + (EDIT ? `<button class="card newcard" id="addprod">
+      <span class="plus">＋</span>
+      <b>새 제품 만들기</b>
+      <span>제품이 새로 생겼을 때 누르십시오. 배합이 비슷한 제품이 이미 있으면
+      그 제품의 <b>복제</b>를 쓰시는 편이 빠릅니다.</span>
+    </button>` : '');
+}
+
+function refreshCards(){
+  vis().forEach(p=>{
+    const c = calc(p), shortfall = c.rest < 0, under = c.lot < c.recLot - 1e-9;
+    const card = document.getElementById('card-'+p.id); if(!card) return;
+    card.classList.toggle('short', shortfall);
+    setText('plot-'+p.id, 'P/LOT '+f1(c.perLot));
+    setText('r-out-'+p.id, fmt(c.out));
+    setText('r-need-'+p.id, fmt(c.need));
+    setText('r-cap-'+p.id, fmt(c.cap));
+    setText('r-rest-'+p.id, f1(c.rest));
+    document.getElementById('r-rest-w-'+p.id).className = shortfall ? 'neg' : 'ok';
+    const lotInput = document.getElementById('lot-'+p.id);
+    if(p.autoLot && lotInput && document.activeElement!==lotInput) lotInput.value = f2(c.lot);
+    const pill = document.getElementById('pill-'+p.id);
+    pill.textContent = p.autoLot ? '자동'
+                     : (c.need>0 ? '필요 '+f2(c.recLot)+' LOT' : '재고로 충당');
+    pill.className = 'pill' + (p.autoLot ? ' edit' : (under ? ' alert' : ' leaf'));
+    document.getElementById('apply-'+p.id).hidden = !under || p.autoLot;
+    const cb = document.getElementById('clr-'+p.id);
+    if(cb){
+      const undoing = CLR && CLR.id===p.id;
+      cb.textContent = undoing ? '↩ 되돌리기' : '비우기';
+      cb.classList.toggle('undo', !!undoing);
+      cb.dataset.clr = undoing ? '' : p.id;
+      cb.dataset.undo = undoing ? p.id : '';
+    }
+    c.rows.forEach((r,i)=> setText(`ratio-${p.id}-${i}`, (r.ratio*100).toFixed(1)+'%'));
+  });
+}
+
+function hiddenBox(){
+  const box = document.getElementById('hiddenbox');
+  const hid = S.products.filter(p=>p.hidden);
+  if(!EDIT || !hid.length){ box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  box.innerHTML = `<b>숨긴 제품</b> — 다시 쓰시려면 왼쪽을, 아주 지우시려면 <b>✕</b>를 누르십시오.
+    <div class="row">${hid.map(p=>`<span class="hidpair">
+      <button class="mini keep" data-show="${p.id}" style="padding:6px 12px">↩ ${esc(p.nm)}</button>
+      <button class="mini x keep" data-drop="${p.id}" title="목록에서 아주 지우기" style="padding:6px 9px">✕</button>
+    </span>`).join('')}</div>`;
+}
+
+/* ===================== 현장 작업지시 ===================== */
+function floor(){
+  setText('floor-date', S.date);
+  document.getElementById('floor').innerHTML = vis().map(p=>{
+    const c = calc(p), idle = c.lot<=0, U = p.unitLabel || '콘티';
+    return `<div class="fcard${idle?' idle':''}">
+      <div class="fcard-hd"><h3>${esc(p.nm)}</h3><span class="lot num">${f2(c.lot)} LOT</span></div>
+      <ul>${c.rows.map(r=>{
+        const q = floorQty(r.kt, r.unit, U);
+        const primary = U==='kg' ? q.kg : q.konti;
+        const secondary = U==='kg' ? q.konti : q.kg;
+        return `<li><span class="mn">${esc(r.n)}</span>
+          <span class="kt num">${primary}<small>${secondary}</small></span></li>`;
+      }).join('')}</ul>
+    </div>`;
+  }).join('');
+
+  const tot = {};
+  vis().forEach(p=>calc(p).rows.forEach(r=>{ (tot[r.n]=tot[r.n]||{kt:0,cut:0}); tot[r.n].kt+=r.kt; tot[r.n].cut+=r.cut; }));
+  const list = Object.keys(tot).filter(m=>tot[m].cut>0);
+  document.getElementById('floor-mat').innerHTML =
+   `<thead><tr><th>원재료</th><th>총 절단량 (kg)</th><th>총 콘티수량</th></tr></thead><tbody>
+    ${list.map(m=>`<tr><td>${esc(m)}</td><td class="num">${f1(tot[m].cut)}</td><td class="num">${f2(tot[m].kt)}</td></tr>`).join('')}
+    <tr class="total"><td>합계</td><td class="num">${f1(list.reduce((a,m)=>a+tot[m].cut,0))}</td>
+    <td class="num">${f2(list.reduce((a,m)=>a+tot[m].kt,0))}</td></tr></tbody>`;
+}
+
+/* ===================== 원물 합계 ===================== */
+function matList(){
+  const extra = [];
+  vis().forEach(p=>p.mats.forEach(m=>{ if(m.n && !MATS.includes(m.n) && !extra.includes(m.n)) extra.push(m.n); }));
+  return MATS.concat(extra);
+}
+/* 원재료별 하루 계산 — 팀장님 순서: 원물 → 전처리 → 오늘 썰 양 → 필요 원물 → 1층 요청 → 내일 재고 */
+function matTotals(){
+  const t = {}; matList().forEach(m=>t[m]={cutNeed:0});
+  vis().forEach(p=>calc(p).rows.forEach(r=>{
+    if(!t[r.n]) t[r.n]={cutNeed:0};
+    t[r.n].cutNeed += r.cut;      // 가공 — 오늘 작업지시가 요구하는 절단량
+  }));
+  return t;
+}
+const hasVal = (obj,m)=> !!obj && obj[m]!=null && obj[m]!=='';
+/* 원재료별 하루 계산 (2026-10-15 팀장님 메모 반영)
+   가공   = 작업지시 절단량
+   전처리 = 가공 + 당일 전처리 재고 − 전일 전처리 재고      (오늘 실제로 썬 양, 내일 쓸 것 포함)
+   원물투입 = 전일 원물 재고 + 원물 입고 − 당일 원물 재고
+   원물 수율 % = 전처리 ÷ 원물투입                          (당일 원물 재고를 입력하면 자동 계산. 당일 전처리 재고 미입력은 0) */
+function stockRow(m, t){
+  const cutNeed = t[m] ? t[m].cutNeed : 0;
+  const rawOpen = +S.rawOpen[m]||0, preOpen = +S.preOpen[m]||0, rawIn = +S.rawIn[m]||0;
+  const hasEndRaw = hasVal(S.endRaw,m), hasEndPre = true;   // 당일 전처리 재고는 기본값 0 (비우면 0으로 계산)
+  const endRaw = hasEndRaw ? (+S.endRaw[m]||0) : null, endPre = hasVal(S.endPre,m) ? (+S.endPre[m]||0) : 0;
+  const pre    = hasEndPre ? cutNeed + endPre - preOpen : null;
+  const rawUse = hasEndRaw ? rawOpen + rawIn - endRaw : null;
+  let yAct=null, yState='wait';                         // wait: 입력 대기 · none: 원물 미사용 · bad: 재고 확인 · ok
+  if(hasEndRaw && hasEndPre){
+    if(Math.abs(rawUse)<1e-9 && pre>=-1e-9) yState='none';
+    else if(rawUse>0 && pre>=-1e-9 && pre<=rawUse*1.0001){ yAct=Math.max(0,pre)/rawUse; yState='ok'; }   // 수율 100% 초과는 있을 수 없으므로 재고 확인
+    else yState='bad';
+  }
+  return {cutNeed, rawOpen, preOpen, rawIn, hasEndRaw, hasEndPre, endRaw, endPre, pre, rawUse, yAct, yState};
+}
+/* 그날 원재료별 자동 수율 — 생산일지 제품별 원물투입량 환산에 씁니다 */
+function dayYields(){
+  const t = matTotals(), o = {};
+  matList().forEach(m=>{ o[m] = stockRow(m,t).yAct; });
+  return o;
+}
+function prodRaw(c, Y){
+  let raw=0, ok=true;
+  c.rows.forEach(r=>{ const y=Y[r.n]; if(y>0) raw += r.cut/y; else if(r.cut>0) ok=false; });
+  return {raw, ok};
+}
+const stockCell = (id,val,label,key,ph)=>
+  `<td><input type="number" id="${id}" value="${val}" data-${key}="${esc(label)}" step="any" inputmode="decimal"
+     aria-label="${esc(label)} ${ph}"
+     style="font:inherit;font-size:13px;text-align:right;width:82px;padding:3px 7px;background:var(--input-bg);border:1px solid var(--input-line);border-radius:6px;color:var(--ink);font-variant-numeric:tabular-nums"></td>`;
+
+const endCell = (id,obj,m,key,ph,dflt='')=>
+  `<td><input type="number" id="${id}" value="${hasVal(obj,m)?obj[m]:dflt}" placeholder="${dflt===''?'입력':dflt}" data-${key}="${esc(m)}" step="any" inputmode="decimal"
+     aria-label="${esc(m)} ${ph}"
+     style="font:inherit;font-size:13px;text-align:right;width:82px;padding:3px 7px;background:var(--input-bg);border:1px solid var(--input-line);border-radius:6px;color:var(--ink);font-variant-numeric:tabular-nums"></td>`;
+function buildSum(){
+  document.getElementById('sumtbl').innerHTML =
+   `<thead>
+     <tr>
+       <th rowspan="2">원재료</th>
+       <th colspan="2" class="grp">전일 재고</th>
+       <th colspan="4" class="grp">원물 사용량</th>
+       <th colspan="2" class="grp" style="color:var(--edit)">당일재고</th>
+       <th rowspan="2">원물 수율 %<br><small style="font-weight:400">(자동계산)</small></th>
+     </tr>
+     <tr>
+       <th>원물</th><th>전처리</th>
+       <th>가공<br><small style="font-weight:400">(작업지시 절단량)</small></th>
+       <th>전처리<br><small style="font-weight:400">(오늘 실제 썬 양)</small></th>
+       <th>원물투입</th><th>원물 입고</th>
+       <th>전처리</th><th>원물</th>
+     </tr></thead><tbody>
+   ${matList().map(m=>`<tr>
+       <td>${esc(m)}</td>
+       ${stockCell('ro-'+m, +S.rawOpen[m]||0, m, 'rawopen', '전일 원물 재고')}
+       ${stockCell('po-'+m, +S.preOpen[m]||0, m, 'preopen', '전일 전처리 재고')}
+       <td class="num" id="s-need-${esc(m)}"></td>
+       <td class="num" id="s-pre-${esc(m)}"></td>
+       <td class="num" id="s-use-${esc(m)}"></td>
+       ${stockCell('ri-'+m, +S.rawIn[m]||0, m, 'rawin', '원물 입고(1층에서 올린 양)')}
+       ${endCell('ep-'+m, S.endPre, m, 'endpre', '당일 전처리 재고', '0')}
+       ${endCell('er-'+m, S.endRaw, m, 'endraw', '당일 원물 재고')}
+       <td class="num" id="s-y-${esc(m)}"></td></tr>`).join('')}
+   <tr class="total"><td>합계</td>
+     <td class="num" id="t-ro"></td><td class="num" id="t-po"></td>
+     <td class="num" id="t-need"></td><td class="num" id="t-pre"></td>
+     <td class="num" id="t-use"></td><td class="num" id="t-ri"></td>
+     <td class="num" id="t-ep"></td><td class="num" id="t-er"></td>
+     <td class="num" id="t-y"></td></tr></tbody>`;
+}
+
+function refreshSum(){
+  const t = matTotals();
+  const T = {ro:0,po:0,need:0,pre:0,use:0,ri:0,ep:0,er:0,yp:0,yu:0};
+  const miss = [];
+  matList().forEach(m=>{
+    const r = stockRow(m, t);
+    const set=(id,val,cls)=>{ const e=document.getElementById(id); if(e){ e.textContent=val; e.className=cls; } };
+    const showN = v=> v==null ? '—' : f1(v);
+    set('s-need-'+m, f1(r.cutNeed), 'num'+(r.cutNeed?'':' zero'));
+    set('s-pre-'+m,  showN(r.pre), 'num'+(r.pre==null?' zero':(r.pre<-0.05?' short':'')));
+    set('s-use-'+m,  showN(r.rawUse), 'num'+(r.rawUse==null?' zero':(r.rawUse<-0.05?' short':'')));
+    const ye = document.getElementById('s-y-'+m);
+    if(ye){
+      ye.style.fontWeight='';
+      if(r.yState==='ok'){ ye.textContent=(r.yAct*100).toFixed(1)+'%'; ye.className='num'; ye.style.fontWeight='700'; ye.title=''; }
+      else if(r.yState==='none'){ ye.textContent='원물 미사용'; ye.className='num zero'; ye.title='오늘 원물을 쓰지 않았습니다(전일 원물 + 입고 = 당일 원물).'; }
+      else if(r.yState==='bad'){ ye.textContent='재고 확인'; ye.className='num short'; ye.title='원물투입 또는 전처리(오늘 실제 썬 양)가 마이너스이거나 수율이 100%를 넘습니다. 당일재고·전일 재고·입고 숫자를 확인하십시오.'; }
+      else { ye.textContent='—'; ye.className='num zero'; ye.title='당일 원물 재고를 입력하면 자동 계산됩니다.'; }
+    }
+    const active = r.cutNeed>0 || r.rawOpen>0 || r.preOpen>0 || r.rawIn>0;
+    if(active && !(r.hasEndRaw && r.hasEndPre)) miss.push(m);
+    [['ep-'+m, r.hasEndPre],['er-'+m, r.hasEndRaw]].forEach(([id,has])=>{ const e=document.getElementById(id); if(e) e.style.borderColor = (active && !has) ? 'var(--amber)' : ''; });
+    T.ro+=r.rawOpen; T.po+=r.preOpen; T.need+=r.cutNeed; T.ri+=r.rawIn;
+    if(r.pre!=null) T.pre+=r.pre;
+    if(r.rawUse!=null) T.use+=r.rawUse;
+    if(r.hasEndPre) T.ep+=r.endPre;
+    if(r.hasEndRaw) T.er+=r.endRaw;
+    if(r.yState==='ok'){ T.yp+=r.pre; T.yu+=r.rawUse; }
+  });
+  setText('t-ro',f1(T.ro)); setText('t-po',f1(T.po)); setText('t-need',f1(T.need));
+  setText('t-pre',f1(T.pre)); setText('t-use',f1(T.use)); setText('t-ri',f1(T.ri));
+  setText('t-ep',f1(T.ep)); setText('t-er',f1(T.er));
+  setText('t-y', T.yu>0 ? (T.yp/T.yu*100).toFixed(1)+'%' : '—');
+  const w = document.getElementById('endwarn');
+  if(w){ w.hidden = !miss.length;
+    if(miss.length) w.innerHTML = '<b>당일 원물 재고를 입력하셔야</b> 원물 수율이 계산되고 내일로 넘어갑니다 — 입력이 비어 있는 원재료: <b>'+miss.map(esc).join(', ')+'</b>'; }
+  setText('sum-date', S.date);
+  setText('next-date', addDay(S.date,1));
+  const undo = document.getElementById('undoclose'); if(undo) undo.hidden = !S.prev;
+}
+
+/* 작업 마감 → 그날 기록 저장 후 내일로 이월 */
+async function closeDay(){
+  await saveToday(true);          // 먼저 오늘 기록을 남깁니다
+  const today=S.date;
+  S.prev = clone({date:S.date, rawOpen:S.rawOpen, preOpen:S.preOpen, rawIn:S.rawIn,
+                  endRaw:S.endRaw, endPre:S.endPre, rawOpenManual:S.rawOpenManual, preOpenManual:S.preOpenManual,
+                  buyers:S.products.map(p=>p.buyers.map(b=>b.v)),
+                  lots:S.products.map(p=>({lot:p.lot, autoLot:!!p.autoLot})),
+                  stocks:S.products.map(p=>+p.stock||0),
+                  stockManuals:S.products.map(p=>!!p.stockManual)});
+  const cf = computeCarryForward();   // 오늘치 잔여재고·원물을 먼저 뽑아 둡니다(출고 비우기 전)
+  S.rawOpen={...ZERO(), ...cf.rawOpen}; S.preOpen={...ZERO(), ...cf.preOpen}; S.rawIn=ZERO(); S.endRaw={}; S.endPre={}; S.rawOpenManual={}; S.preOpenManual={};
+  S.products.forEach(p=>{
+    p.buyers.forEach(b=>b.v=0); p.lot=0; p.autoLot=true;
+    p.stock = cf.stockById[p.id]!=null ? cf.stockById[p.id] : 0;  // 전일재고 자동 이월
+    p.stockManual = false;                    // 새로 이월된 값 — 아직 실사로 고치기 전 상태
+  });
+  const next=addDay(today,1), existing=await Store.getDay(next);
+  S.date=next;
+  // 다음 날짜에 "진짜 입력"이 이미 있을 때만 보호합니다 — 그냥 들여다보기만 해서 생긴
+  // 빈 기록이라면(stateHasRealInput===false) 지금 계산한 이월값을 그대로 씁니다.
+  const nextReal = existing && existing.state && stateHasRealInput(existing.state);
+  if(nextReal){ applyDayState(existing.state); applyCarryToCurrent(cf); }
+  document.getElementById('workdate').value=S.date;
+  REC.anchor=new Date(S.date+'T00:00:00');
+  rebuild();
+  await saveToday(true);
+  setText('bkmsg', today+' 기록을 저장하고 '+S.date+' 입력 DB로 넘겼습니다.' +
+    (cf.missing.length ? ' ※ 당일재고 미입력(전일 재고로 넘어가지 않음): '+cf.missing.join(', ')+' — '+today+'로 돌아가 입력하신 뒤 다시 날짜를 옮기시면 이어집니다.' : ''));
+}
+function undoClose(){
+  if(!S.prev) return;
+  const p = S.prev;
+  S.date=p.date; S.rawOpen=p.rawOpen; S.preOpen=p.preOpen; S.rawIn=p.rawIn;
+  S.endRaw=p.endRaw||{}; S.endPre=p.endPre||{}; S.rawOpenManual=p.rawOpenManual||{}; S.preOpenManual=p.preOpenManual||{};
+  S.products.forEach((pr,i)=>{
+    if(p.buyers[i]) pr.buyers.forEach((b,j)=>{ if(p.buyers[i][j]!=null) b.v=p.buyers[i][j]; });
+    if(p.lots && p.lots[i]){ pr.lot = p.lots[i].lot; pr.autoLot = p.lots[i].autoLot; }
+    if(p.stocks && p.stocks[i]!=null) pr.stock = p.stocks[i];
+    pr.stockManual = !!(p.stockManuals && p.stockManuals[i]);
+  });
+  S.prev=null;
+  document.getElementById('workdate').value = S.date;
+  rebuild();
+}
+
+/* ===================== 생산일지 ===================== */
+function logview(){
+  setText('log-date', S.date);
+  const Y = dayYields();
+  const rows = vis().map(p=>{ const c=calc(p); return {p, c, pr:prodRaw(c,Y)}; }).filter(x=>x.c.lot>0);
+  document.getElementById('logtbl').innerHTML =
+   `<thead><tr><th>제품</th><th>LOT</th><th>생산량 (EA)</th><th>포장중량 (g)</th>
+     <th>절단량 (kg)</th><th>원물투입량 (kg)</th><th>가중수율</th><th>출고 (EA)</th><th>잔여재고 (EA)</th></tr></thead><tbody>
+   ${rows.map(({p,c,pr})=>{
+     const cut=c.rows.reduce((a,r)=>a+r.cut,0), raw=pr.raw;
+     return `<tr><td>${esc(p.nm)}</td><td class="num">${f2(c.lot)}</td><td class="num">${fmt(c.cap)}</td>
+       <td class="num">${fmt(p.pack)}</td><td class="num">${f1(cut)}</td><td class="num">${pr.ok?f1(raw):'—'}</td>
+       <td class="num">${pr.ok&&raw?(cut/raw*100).toFixed(1)+'%':'—'}</td>
+       <td class="num">${fmt(c.out)}</td><td class="num">${f1(c.rest)}</td></tr>`;
+   }).join('')}
+   <tr class="total"><td>합계</td><td></td>
+     <td class="num">${fmt(rows.reduce((a,x)=>a+x.c.cap,0))}</td><td></td>
+     <td class="num">${f1(rows.reduce((a,x)=>a+x.c.rows.reduce((b,r)=>b+r.cut,0),0))}</td>
+     <td class="num">${rows.every(x=>x.pr.ok)?f1(rows.reduce((a,x)=>a+x.pr.raw,0)):'—'}</td>
+     <td></td><td class="num">${fmt(rows.reduce((a,x)=>a+x.c.out,0))}</td><td></td></tr></tbody>`;
+}
+
+/* ═════════════ 일일 기록 · 기간 집계 ═════════════ */
+function buildDayRecord(){
+  const t = matTotals(), mats = {};
+  matList().forEach(m=>{
+    const r = stockRow(m, t);
+    if(r.cutNeed || r.rawOpen || r.preOpen || r.rawIn || r.hasEndRaw || r.hasEndPre){
+      const ok = r.yState==='ok';
+      mats[m] = {need:+r.cutNeed.toFixed(2), cut:+(r.pre!=null ? r.pre : r.cutNeed).toFixed(2), use:+(r.rawUse>0 ? r.rawUse : 0).toFixed(2),
+                 ro:+r.rawOpen.toFixed(2), po:+r.preOpen.toFixed(2), ri:+r.rawIn.toFixed(2),
+                 rc:+(r.endRaw||0).toFixed(2), pc:+(r.endPre||0).toFixed(2), short:0, std:0,
+                 ar:ok ? +r.rawUse.toFixed(2) : 0, ac:ok ? +r.pre.toFixed(2) : 0};   // 수율 집계용(당일재고 입력 완료일만)
+    }
+  });
+  const Y = dayYields();
+  const products = vis().map(p=>{
+    const c = calc(p);
+    return {id:p.id, nm:p.nm, lot:+c.lot.toFixed(2), cap:Math.round(c.cap), out:Math.round(c.out),
+            rest:+c.rest.toFixed(1), pack:p.pack,
+            cut:+c.rows.reduce((a,r)=>a+r.cut,0).toFixed(2),
+            raw:+prodRaw(c,Y).raw.toFixed(2)};
+  }).filter(p=>p.lot>0 || p.out>0);
+  const sum = (k)=>products.reduce((a,p)=>a+p[k],0);
+  return {date:S.date, savedAt:new Date().toISOString(),
+          tot:{cap:sum('cap'), out:sum('out'), cut:+sum('cut').toFixed(1), raw:+sum('raw').toFixed(1),
+               lots:+sum('lot').toFixed(2)},
+          products, mats, state:dayState()};
+}
+
+const REC = {unit:'month', anchor:new Date('2026-09-01T00:00:00'), days:[], loaded:false};
+const iso = d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const mk  = (y,m,d)=>new Date(y, m, d);
+
+function periodOf(unit, a){
+  const y=a.getFullYear(), m=a.getMonth(), d=a.getDate();
+  switch(unit){
+    case 'day':  return {from:iso(a), to:iso(a), label:`${y}년 ${m+1}월 ${d}일`};
+    case 'week':{
+      const off=(a.getDay()+6)%7, s=mk(y,m,d-off), e=mk(y,m,d-off+6);
+      return {from:iso(s), to:iso(e), label:`${s.getFullYear()}년 ${s.getMonth()+1}월 ${s.getDate()}일 ~ ${e.getMonth()+1}월 ${e.getDate()}일`};
+    }
+    case 'month': return {from:iso(mk(y,m,1)), to:iso(mk(y,m+1,0)), label:`${y}년 ${m+1}월`};
+    case 'quarter':{ const q=Math.floor(m/3);
+      return {from:iso(mk(y,q*3,1)), to:iso(mk(y,q*3+3,0)), label:`${y}년 ${q+1}분기 (${q*3+1}~${q*3+3}월)`}; }
+    case 'half':{ const h=m<6?0:1;
+      return {from:iso(mk(y,h*6,1)), to:iso(mk(y,h*6+6,0)), label:`${y}년 ${h?'하':'상'}반기 (${h*6+1}~${h*6+6}월)`}; }
+    default:      return {from:iso(mk(y,0,1)), to:iso(mk(y,11,31)), label:`${y}년 전체`};
+  }
+}
+function shiftPeriod(dir){
+  const a=REC.anchor, y=a.getFullYear(), m=a.getMonth(), d=a.getDate();
+  REC.anchor = REC.unit==='day'     ? mk(y,m,d+dir)
+             : REC.unit==='week'    ? mk(y,m,d+7*dir)
+             : REC.unit==='month'   ? mk(y,m+dir,1)
+             : REC.unit==='quarter' ? mk(y,m+3*dir,1)
+             : REC.unit==='half'    ? mk(y,m+6*dir,1)
+             :                        mk(y+dir,m,1);
+}
+
+async function loadDays(){
+  try{ REC.days = (await Store.allDays()).filter(d=>d && d.date); }
+  catch(e){ REC.days=[]; console.warn(e); }
+  REC.days.sort((a,b)=>a.date<b.date?-1:1);
+  REC.loaded = true;
+}
+
+function renderRec(){
+  const p = periodOf(REC.unit, REC.anchor);
+  setText('perlabel', p.label);
+  document.querySelectorAll('.ubtn').forEach(b=>b.setAttribute('aria-pressed', b.dataset.unit===REC.unit));
+  const days = REC.days.filter(d=>d.date>=p.from && d.date<=p.to);
+
+  const T = days.reduce((a,d)=>({cap:a.cap+(d.tot?.cap||0), out:a.out+(d.tot?.out||0),
+    cut:a.cut+(d.tot?.cut||0), raw:a.raw+(d.tot?.raw||0), lots:a.lots+(d.tot?.lots||0)}),
+    {cap:0,out:0,cut:0,raw:0,lots:0});
+  document.getElementById('tiles').innerHTML = `
+    <dl class="tile"><dt>작업일수</dt><dd class="num">${days.length}<small>일</small></dd></dl>
+    <dl class="tile"><dt>총 생산량</dt><dd class="num">${fmt(T.cap)}<small>EA</small></dd></dl>
+    <dl class="tile"><dt>총 출고량</dt><dd class="num">${fmt(T.out)}<small>EA</small></dd></dl>
+    <dl class="tile"><dt>총 LOT</dt><dd class="num">${f2(T.lots)}<small>LOT</small></dd></dl>
+    <dl class="tile"><dt>총 절단량</dt><dd class="num">${f1(T.cut)}<small>kg</small></dd></dl>
+    <dl class="tile"><dt>총 원물 투입</dt><dd class="num">${f1(T.raw)}<small>kg</small></dd></dl>`;
+
+  setText('rec-sub1', days.length ? `${p.from} ~ ${p.to} · ${days.length}일치` : '기록 없음');
+  setText('rec-sub2', days.length ? `${days.length}건` : '');
+
+  if(!days.length){
+    const msg = `<tbody><tr><td class="empty" colspan="9">이 기간에 저장된 기록이 없습니다.
+      ③ 원물 사용현황 화면에서 <b>작업 마감</b>을 누르시면 그날 기록이 저장됩니다.</td></tr></tbody>`;
+    document.getElementById('rectbl-p').innerHTML = msg;
+    document.getElementById('rectbl-m').innerHTML = msg;
+    document.getElementById('rectbl-d').innerHTML = msg;
+    document.getElementById('rectbl-y').innerHTML = msg;
+    document.getElementById('rectbl-t').innerHTML = msg;
+    setText('rec-sub3','실측 입력 없음');
+    document.getElementById('yieldnote').innerHTML =
+      '수율을 보시려면 ③ 원물 사용현황 화면에서 원재료별 <b>당일 원물 재고</b>를 입력하셔야 합니다. ' +
+      '두 칸이 모두 입력된 날만 <b>원물 수율 %</b>가 자동 계산되어 여기에 쌓입니다.';
+    return;
+  }
+
+  /* 제품별 */
+  const P2 = {};
+  days.forEach(d=>(d.products||[]).forEach(x=>{
+    const r = P2[x.nm] || (P2[x.nm]={nm:x.nm, days:0, lot:0, cap:0, out:0, cut:0, raw:0});
+    r.days++; r.lot+=x.lot||0; r.cap+=x.cap||0; r.out+=x.out||0; r.cut+=x.cut||0; r.raw+=x.raw||0;
+  }));
+  const pr = Object.values(P2).sort((a,b)=>b.cap-a.cap);
+  document.getElementById('rectbl-p').innerHTML =
+   `<thead><tr><th>제품</th><th>작업일수</th><th>LOT</th><th>생산량 (EA)</th><th>출고량 (EA)</th>
+     <th>절단량 (kg)</th><th>원물투입 (kg)</th><th>가중수율</th></tr></thead><tbody>
+    ${pr.map(r=>`<tr><td>${esc(r.nm)}</td><td class="num">${r.days}</td><td class="num">${f2(r.lot)}</td>
+      <td class="num">${fmt(r.cap)}</td><td class="num">${fmt(r.out)}</td>
+      <td class="num">${f1(r.cut)}</td><td class="num">${f1(r.raw)}</td>
+      <td class="num">${r.raw?(r.cut/r.raw*100).toFixed(1)+'%':'—'}</td></tr>`).join('')}
+    <tr class="total"><td>합계</td><td class="num">${days.length}</td>
+      <td class="num">${f2(T.lots)}</td><td class="num">${fmt(T.cap)}</td><td class="num">${fmt(T.out)}</td>
+      <td class="num">${f1(T.cut)}</td><td class="num">${f1(T.raw)}</td>
+      <td class="num">${T.raw?(T.cut/T.raw*100).toFixed(1)+'%':'—'}</td></tr></tbody>`;
+
+  /* 원재료별 */
+  const M2 = {};
+  days.forEach(d=>Object.entries(d.mats||{}).forEach(([m,v])=>{
+    const r = M2[m] || (M2[m]={cut:0, use:0});
+    r.cut+=v.cut||0; r.use+=v.use||0;
+  }));
+  const mr = Object.entries(M2).filter(([,v])=>v.cut||v.use).sort((a,b)=>b[1].use-a[1].use);
+  document.getElementById('rectbl-m').innerHTML =
+   `<thead><tr><th>원재료</th><th>전처리 (실제 썬 양, kg)</th><th>원물 투입 (kg)</th><th>수율</th></tr></thead><tbody>
+    ${mr.map(([m,v])=>`<tr><td>${esc(m)}</td><td class="num">${f1(v.cut)}</td><td class="num">${f1(v.use)}</td>
+      <td class="num">${v.use?(v.cut/v.use*100).toFixed(1)+'%':'—'}</td></tr>`).join('')}
+    <tr class="total"><td>합계</td>
+      <td class="num">${f1(mr.reduce((a,x)=>a+x[1].cut,0))}</td>
+      <td class="num">${f1(mr.reduce((a,x)=>a+x[1].use,0))}</td><td></td></tr></tbody>`;
+
+  /* 수율 — 당일재고 입력 완료일 기준 (자동계산) */
+  const Y = {};
+  days.forEach(d=>Object.entries(d.mats||{}).forEach(([m,v])=>{
+    if(!(v.ar>0)) return;                       // 당일재고를 모두 입력해 수율이 계산된 날만 집계합니다
+    const r = Y[m] || (Y[m]={ar:0, ac:0, n:0});
+    r.ar+=v.ar; r.ac+=v.ac||0; r.n++;
+  }));
+  const ys = Object.entries(Y).sort((a,b)=>b[1].ar-a[1].ar);
+  const yt = ys.reduce((a,[,v])=>({ar:a.ar+v.ar, ac:a.ac+v.ac}), {ar:0,ac:0});
+  const measured = days.filter(d=>Object.values(d.mats||{}).some(v=>v.ar>0)).length;
+  setText('rec-sub3', measured ? `수율이 계산된 ${measured}일치 기준` : '수율 계산된 날 없음');
+
+  if(!ys.length){
+    document.getElementById('rectbl-y').innerHTML =
+      `<tbody><tr><td class="empty">아직 수율이 계산된 날이 없습니다.<br>
+       ③ 원물 사용현황 화면에서 원재료별 <b>당일 원물 재고</b>를 입력하시면 여기에 원물 수율이 쌓입니다.</td></tr></tbody>`;
+    document.getElementById('rectbl-t').innerHTML =
+      `<tbody><tr><td class="empty">수율이 쌓이면 날짜별 수율 변화가 여기에 나옵니다.</td></tr></tbody>`;
+    document.getElementById('yieldnote').innerHTML =
+      '당일재고를 입력하면 <b>전처리 ÷ 원물투입</b>으로 그날의 원물 수율이 자동 계산됩니다.';
+  } else {
+    document.getElementById('rectbl-y').innerHTML =
+     `<thead><tr><th>원재료</th><th>계산일수</th><th>원물투입 (kg)</th><th>전처리 (kg)</th><th>평균 수율</th></tr></thead><tbody>
+      ${ys.map(([m,v])=>`<tr><td>${esc(m)}</td><td class="num">${v.n}</td>
+          <td class="num">${f1(v.ar)}</td><td class="num">${f1(v.ac)}</td>
+          <td class="num"><b>${(v.ac/v.ar*100).toFixed(1)}%</b></td></tr>`).join('')}
+      <tr class="total"><td>전체</td><td class="num">${measured}</td>
+        <td class="num">${f1(yt.ar)}</td><td class="num">${f1(yt.ac)}</td>
+        <td class="num">${yt.ar>0?(yt.ac/yt.ar*100).toFixed(1)+'%':'—'}</td></tr></tbody>`;
+    document.getElementById('yieldnote').innerHTML =
+      '평균 수율은 <b>기간 전체 전처리 합 ÷ 원물투입 합</b>(투입량 가중)입니다. 당일재고를 모두 입력한 날만 포함됩니다.';
+
+    /* 수율 추이 — 날짜 × 원재료 */
+    const cols = ys.slice(0,8).map(([m])=>m);
+    const rows = days.filter(d=>Object.values(d.mats||{}).some(v=>v.ar>0));
+    document.getElementById('rectbl-t').innerHTML =
+     `<thead><tr><th>작업일</th>${cols.map(m=>`<th>${esc(m)}</th>`).join('')}<th>전체</th></tr></thead><tbody>
+      ${rows.map(d=>{
+        let ta=0, tc=0;
+        const cs = cols.map(m=>{
+          const v=(d.mats||{})[m];
+          if(!v || !(v.ar>0)) return '<td class="num zero">—</td>';
+          return `<td class="num">${(v.ac/v.ar*100).toFixed(1)}%</td>`;
+        }).join('');
+        Object.values(d.mats||{}).forEach(v=>{ if(v.ar>0){ ta+=v.ar; tc+=v.ac||0; } });
+        return `<tr><td>${d.date}</td>${cs}<td class="num"><b>${ta>0?(tc/ta*100).toFixed(1)+'%':'—'}</b></td></tr>`;
+      }).join('')}</tbody>`;
+  }
+
+  /* 일자별 */
+  document.getElementById('rectbl-d').innerHTML =
+   `<thead><tr><th>작업일</th><th>제품수</th><th>LOT</th><th>생산량 (EA)</th><th>출고량 (EA)</th>
+     <th>절단량 (kg)</th><th>원물투입 (kg)</th><th>저장 시각</th></tr></thead><tbody>
+    ${days.slice().reverse().map(d=>`<tr><td>${d.date}</td>
+      <td class="num">${(d.products||[]).length}</td><td class="num">${f2(d.tot?.lots||0)}</td>
+      <td class="num">${fmt(d.tot?.cap||0)}</td><td class="num">${fmt(d.tot?.out||0)}</td>
+      <td class="num">${f1(d.tot?.cut||0)}</td><td class="num">${f1(d.tot?.raw||0)}</td>
+      <td class="num" style="color:var(--ink-3);font-size:11.5px">${(d.savedAt||'').slice(0,16).replace('T',' ')}</td></tr>`).join('')}
+    </tbody>`;
+}
+
+async function openRec(){ if(!REC.loaded) await loadDays(); renderRec(); }
+
+async function saveToday(silent){
+  const rec = buildDayRecord();
+  flag('busy','저장 중');
+  const okd = await Store.putDay(S.date, rec);
+  flag(okd?'ok':'ro', okd?Store.label:'저장 실패');
+  const i = REC.days.findIndex(d=>d.date===rec.date);
+  if(i>=0) REC.days[i]=rec; else { REC.days.push(rec); REC.days.sort((a,b)=>a.date<b.date?-1:1); }
+  if(!silent) setText('bkmsg', okd ? `${rec.date} 기록을 저장했습니다.` : '저장하지 못했습니다.');
+  if(!document.getElementById('v-rec').hidden) renderRec();
+  return okd;
+}
+
+/* ═════════════ 백업 ═════════════ */
+async function offerFile(filename, data){
+  if(window.claude && typeof window.claude.use==='function'){
+    try{
+      const dl = await window.claude.use('downloads');
+      if(dl){ await dl.save({filename, data}); return '내려받았습니다.'; }
+    }catch(e){ if(e && e.code==='declined') return '취소하셨습니다.'; }
+  }
+  try{
+    const url = URL.createObjectURL(new Blob([data], {type:'application/octet-stream'}));
+    const a = document.createElement('a'); a.href=url; a.download=filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+    return '내려받았습니다.';
+  }catch(e){ return '이 환경에서는 파일 저장이 막혀 있습니다.'; }
+}
+async function exportJson(){
+  if(!REC.loaded) await loadDays();
+  const body = {kind:'dkj1f-jakup-backup', version:3, exportedAt:new Date().toISOString(),
+                config:{date:S.date, products:S.products, rawOpen:S.rawOpen, preOpen:S.preOpen, rawIn:S.rawIn,
+                        endRaw:S.endRaw, endPre:S.endPre},
+                days:REC.days};
+  setText('bkmsg', await offerFile(`동김제_작업기록_백업_${iso(new Date())}.json`,
+                                   JSON.stringify(body,null,1)));
+}
+async function exportCsv(){
+  const p = periodOf(REC.unit, REC.anchor);
+  const days = REC.days.filter(d=>d.date>=p.from && d.date<=p.to);
+  const rows = [['구분','작업일','제품','LOT','생산량(EA)','출고량(EA)','절단량(kg)','원물투입(kg)']];
+  days.forEach(d=>(d.products||[]).forEach(x=>
+    rows.push(['제품', d.date, x.nm, x.lot, x.cap, x.out, x.cut, x.raw])));
+  days.forEach(d=>Object.entries(d.mats||{}).forEach(([m,v])=>
+    rows.push(['원재료', d.date, m, '', '', '', v.cut, v.use])));
+  const csv = '﻿' + rows.map(r=>r.map(c=>{
+    const s=String(c??''); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+  }).join(',')).join('\r\n');
+  setText('bkmsg', await offerFile(`동김제_집계_${p.from}_${p.to}.csv`, csv));
+}
+async function importJson(file){
+  try{
+    const body = JSON.parse(await file.text());
+    if(body.kind!=='dkj1f-jakup-backup') throw new Error('형식이 다릅니다');
+    let n=0;
+    for(const d of (body.days||[])){ if(d && d.date){ await Store.putDay(d.date, d); n++; } }
+    if(body.config && Array.isArray(body.config.products) && body.config.products.length){
+      S.products=body.config.products; S.rawOpen=body.config.rawOpen||S.rawOpen;
+      S.preOpen=body.config.preOpen||S.preOpen; S.rawIn=body.config.rawIn||S.rawIn;
+      S.endRaw=body.config.endRaw||{}; S.endPre=body.config.endPre||{};
+      if(body.config.date) S.date=body.config.date;
+      document.getElementById('workdate').value=S.date;
+      Store.saveConfig(); rebuild();
+    }
+    await loadDays(); renderRec();
+    setText('bkmsg', `기록 ${n}일치와 제품 설정을 되돌렸습니다.`);
+  }catch(e){ setText('bkmsg', '백업 파일을 읽지 못했습니다 — ' + (e.message||'')); }
+}
+
+function flags(){
+  document.getElementById('flags').innerHTML =
+   `<b>[확인 필요] 원본 작업예시서에서 발견된 항목</b><br>
+    · 아워홈·CJ믹스1·CJ믹스2·로메인·치커리 시트는 <b>출고 거래처명 칸이 비어 있습니다</b>(숫자만 있음). <span style="color:var(--amber);font-weight:700">?</span> 표시 칸의 이름을 편집 모드에서 직접 고쳐 주십시오.<br>
+    · 샐러디아 시트 I열(값 18)도 거래처명이 없어 학교급식 시트를 근거로 '아워홈'으로 추정했습니다.<br>
+    · CJ믹스2 프릴 적재량이 수식(1콘티×4kg=4)이 아니라 <b>3으로 직접 덮어써져</b> 있습니다. 배합비 20%가 여기서 나옵니다.<br>
+    · <b>합계 시트에서 CJ믹스1·CJ믹스2의 양상추 소요량이 빠져 있습니다.</b> 양상추가 절단 10kg·원물 13.7kg만큼 과소 집계됩니다. 이 화면에서는 포함해 계산했습니다.<br>
+    · <b>양상추원물 시트는 출고량이 재고 계산에 반영되지 않습니다.</b> 재고 수식이 8행을 보는데 출고값은 9행에 있습니다. 이 화면에서는 정상 반영됩니다.<br>
+    · 전처리 시트 F18에 <code>=N1=F15*F17</code> — 등호가 하나 더 붙어 FALSE(0)가 되어 카이피라 배합비가 0%로 나옵니다.<br>
+    · 샐러리아·샐러디아·학교급식·아워홈·CJ믹스1·CJ믹스2·로메인·치커리 8개 시트의 <b>M2(200g) 블록은 #REF! 오류</b> 상태입니다.<br>
+    · 채소믹스2·슬로우캘리의 기준수율 합계가 <code>SUM(G13:G13)/2</code> — 전체 평균이 아니므로 표시값은 의미가 없습니다.<br>
+    · <b>합계 시트가 전처리 이월분을 원물(kg)에서 그대로 빼고 있습니다.</b> 프릴을 예로 들면 원물 430.9에서 374.6을 빼 56.3으로 나오는데, 이 56.3kg을 수율 0.666으로 썰면 37.5kg밖에 안 나옵니다. 실제로는 287 − 236 = <b>51kg을 더 썰어야 하므로 원물 76.6kg</b>이 필요합니다 — 20kg가량 과소 산출됩니다. 이 화면은 '절단량 기준으로 먼저 빼고, 남은 양만 수율로 역산'하는 방식이라 이 문제가 없습니다.`;
+}
+
+/* ===================== 전체 렌더 ===================== */
+function refresh(){ refreshCards(); floor(); refreshSum(); logview(); save(); }
+function rebuild(){ buildCards(); buildSum(); hiddenBox(); refresh(); }
+
+/* ===================== 이벤트 ===================== */
+const num = v => v===''?0:(isNaN(parseFloat(v))?0:parseFloat(v));
+
+document.addEventListener('input', e=>{
+  const t = e.target, d = t.dataset;
+
+  if(d.p){                                    // 숫자 입력
+    const p = S.products.find(x=>x.id===d.p); if(!p) return;
+    const v = num(t.value);
+    if(d.k==='stock'){
+      p.stock = v;
+      if(!p.stockManual){                     // 실사로 직접 고친 첫 순간에만 뱃지·배경 표시(포커스 유지 위해 전체 다시 그리지 않음)
+        p.stockManual = true;
+        t.style.background='var(--leaf-soft)'; t.style.borderColor='var(--leaf)';
+        const lbl = document.querySelector(`label[for="st-${p.id}"]`);
+        if(lbl && !lbl.querySelector('.q'))
+          lbl.insertAdjacentHTML('beforeend', '<span class="q" style="color:var(--leaf)" title="실사로 직접 입력·수정하신 값입니다. 자동 이월값이 아닙니다.">실사</span>');
+      }
+    }
+    else if(d.k==='out')   p.buyers[+d.i].v = v;
+    else if(d.k==='konti') { p.mats[+d.i].k = v; delete p.mats[+d.i].load; }
+    else if(d.k==='unit')  { p.mats[+d.i].u = v; delete p.mats[+d.i].load; }
+    else if(d.k==='pack')  p.pack = v;
+    else if(d.k==='lot'){  p.lot = v; p.autoLot = false; }   // 직접 치면 수동으로 잠금
+    refresh(); return;
+  }
+  if(d.bn){                                   // 거래처명
+    const [pid,i] = d.bn.split('|');
+    const p = S.products.find(x=>x.id===pid);
+    if(p){ p.buyers[+i].n = t.value; delete p.buyers[+i].q; floor(); save(); }
+    return;
+  }
+  if(d.mn){                                   // 원재료명
+    const [pid,i] = d.mn.split('|');
+    const p = S.products.find(x=>x.id===pid);
+    if(p){ p.mats[+i].n = t.value; floor(); buildSum(); refreshSum(); save(); }
+    return;
+  }
+  if(d.pn){                                   // 제품명
+    const p = S.products.find(x=>x.id===d.pn);
+    if(p){ p.nm = t.value; floor(); logview(); save(); }
+    return;
+  }
+  if(d.ps){                                   // 제품 설명 — 비우면 화면에서 사라집니다
+    const p = S.products.find(x=>x.id===d.ps);
+    if(p){ p.sub = t.value; save(); }
+    return;
+  }
+  if(d.endpre || d.endraw){                   // 당일재고 — 전처리는 비우면 0(기본값), 원물은 비우면 '미입력'(0과 다릅니다)
+    const blank = String(t.value).trim()==='';
+    const tgt = d.endpre ? 'endPre' : 'endRaw', key = d.endpre || d.endraw;
+    S[tgt] = S[tgt] || {};
+    if(blank) delete S[tgt][key]; else S[tgt][key] = num(t.value);
+    refreshSum(); logview(); save(); return;
+  }
+  if(d.rawopen || d.preopen || d.rawin){
+    const v = num(t.value);
+    const blank = String(t.value).trim()==='';       // 직접 고친 칸은 이월이 덮어쓰지 않습니다(비우면 다시 자동 이월)
+    if(d.rawopen){ S.rawOpen[d.rawopen] = v; if(blank) delete S.rawOpenManual[d.rawopen]; else S.rawOpenManual[d.rawopen]=true; }
+    if(d.preopen){ S.preOpen[d.preopen] = v; if(blank) delete S.preOpenManual[d.preopen]; else S.preOpenManual[d.preopen]=true; }
+    if(d.rawin)   S.rawIn[d.rawin]     = v;
+    refreshSum(); logview(); save(); return;
+  }
+  if(t.id==='workdate'){
+    switchDay(t.value);              // 날짜만 바꾸지 않고 해당 날짜의 상세 입력 DB를 불러옵니다
+  }
+});
+
+document.addEventListener('click', e=>{
+  const el = e.target.closest('button'); if(!el) return;
+  const d = el.dataset;
+
+  if(d.wid){                                  // 칸 너비 ◀ ▶
+    const [pid,key,dir] = d.wid.split('|');
+    const p = S.products.find(x=>x.id===pid); if(!p) return;
+    const step = dir==='+' ? 24 : -24;
+    const cur = key==='stock' ? (p.stockW||DEFW) : (p.buyers[+key].w||DEFW);
+    const next = Math.max(56, Math.min(280, cur+step));
+    if(key==='stock') p.stockW = next; else p.buyers[+key].w = next;
+    const fld = el.closest('.field'); if(fld) fld.style.flexBasis = next+'px';
+    save(); return;
+  }
+  if(d.delb){                                 // 거래처 칸 삭제
+    const [pid,i] = d.delb.split('|');
+    const p = S.products.find(x=>x.id===pid);
+    if(p && p.buyers.length>1){ p.buyers.splice(+i,1); rebuild(); }
+    else if(p){ p.buyers[0].v = 0; rebuild(); }
+    return;
+  }
+  if(d.addb){                                 // 거래처 칸 추가
+    const p = S.products.find(x=>x.id===d.addb);
+    if(p){ p.buyers.push({n:'새 거래처', v:0}); rebuild();
+      const inp = document.querySelector(`[data-bn="${p.id}|${p.buyers.length-1}"]`);
+      if(inp){ inp.focus(); inp.select(); } }
+    return;
+  }
+  if(d.delm){                                 // 원재료 소프트 삭제 (계산에서 제외, 복원 가능)
+    const id = d.delm.slice(2);               // "m-" 접두어 제거
+    const li = id.lastIndexOf('-');
+    const pid = id.slice(0,li), i = id.slice(li+1);
+    const p = S.products.find(x=>x.id===pid);
+    if(p && p.mats[+i] && p.mats.filter(m=>!m.deleted).length>1){ p.mats[+i].deleted = true; rebuild(); }
+    return;
+  }
+  if(d.recov){                                // 원재료 복원
+    const id = d.recov.slice(2);
+    const li = id.lastIndexOf('-');
+    const pid = id.slice(0,li), i = id.slice(li+1);
+    const p = S.products.find(x=>x.id===pid);
+    if(p && p.mats[+i]){ delete p.mats[+i].deleted; rebuild(); }
+    return;
+  }
+  if(d.ulabel){                                // 입력 단위 토글: 콘티 ↔ kg (⑤탭 집계단위 data-unit과 충돌 방지 위해 별도 속성 사용)
+    const p = S.products.find(x=>x.id===d.ulabel);
+    if(p){ p.unitLabel = (p.unitLabel==='kg') ? '콘티' : 'kg'; rebuild(); }
+    return;
+  }
+  if(d.addm){                                 // 원재료 추가
+    const p = S.products.find(x=>x.id===d.addm);
+    if(p){ p.mats.push({n:'새 원재료', k:1, u:4, y:0.6}); rebuild();
+      const inp = document.querySelector(`[data-mn="${p.id}|${p.mats.length-1}"]`);
+      if(inp){ inp.focus(); inp.select(); } }
+    return;
+  }
+  if(d.undo){ undoClear(); return; }
+  if(d.clr){ clearProduct(d.clr); return; }
+  if(el.id==='addprod'){ addProduct(); return; }
+  if(d.cp){ copyProduct(d.cp); return; }
+  if(d.drop){ dropProduct(d.drop); return; }
+  if(d.mv){ const [id,dir]=d.mv.split('|'); moveProduct(id, +dir); return; }
+  if(d.hide){ const p=S.products.find(x=>x.id===d.hide); if(p){ p.hidden=true; rebuild(); } return; }
+  if(d.show){ const p=S.products.find(x=>x.id===d.show); if(p){ p.hidden=false; rebuild(); } return; }
+
+  if(d.apply){                                // 필요 LOT 적용
+    const p = S.products.find(x=>x.id===d.apply);
+    if(p){ p.lot = calc(p).recLot; const i=document.getElementById('lot-'+p.id); if(i) i.value=f2(p.lot); refresh(); }
+    return;
+  }
+
+  if(el.id==='editbtn'){
+    EDIT = !EDIT;
+    document.body.classList.toggle('editmode', EDIT);
+    el.textContent = EDIT ? '편집 끝내기' : '칸 편집하기';
+    el.classList.toggle('sec', EDIT);
+    el.classList.toggle('edit', !EDIT);
+    document.getElementById('hint-normal').hidden = EDIT;
+    document.getElementById('hint-edit').hidden = !EDIT;
+    document.getElementById('resetbtn').hidden = !EDIT;
+    document.getElementById('resetconfirm').hidden = true;
+    document.getElementById('edithelp').textContent = EDIT
+      ? '고친 내용은 바로 저장됩니다.' : '칸 이름 변경·크기 조절·삭제·추가를 직접 하실 수 있습니다.';
+    rebuild(); return;
+  }
+  if(el.id==='resetbtn'){ el.hidden=true; document.getElementById('resetconfirm').hidden=false; return; }
+  if(el.id==='resetno'){ document.getElementById('resetconfirm').hidden=true; document.getElementById('resetbtn').hidden=false; return; }
+  if(el.id==='resetyes'){
+    S = fresh(); save();
+    document.getElementById('resetconfirm').hidden=true; document.getElementById('resetbtn').hidden=false;
+    document.getElementById('workdate').value = S.date;
+    rebuild(); return;
+  }
+  if(el.id==='printfloor'||el.id==='printsum'||el.id==='printlog'||el.id==='printrec'){ window.print(); return; }
+  if(el.id==='closeday'){ closeDay(); return; }
+  if(el.id==='undoclose'){ undoClose(); return; }
+  if(el.id==='savenow'){ saveToday(); return; }
+  if(el.id==='expjson'){ exportJson(); return; }
+  if(el.id==='expcsv'){  exportCsv();  return; }
+  if(el.dataset.unit){ REC.unit=el.dataset.unit; renderRec(); return; }
+  if(el.id==='perprev'){ shiftPeriod(-1); renderRec(); return; }
+  if(el.id==='pernext'){ shiftPeriod(+1); renderRec(); return; }
+
+  const tab = el.closest('.tab');
+  if(tab){
+    document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected', b===tab));
+    ['input','floor','sum','log','rec'].forEach(v=>{ document.getElementById('v-'+v).hidden = (v!==tab.dataset.view); });
+    if(tab.dataset.view==='rec') openRec();
+  }
+});
+
+document.addEventListener('change', e=>{
+  if(e.target.id==='impfile' && e.target.files && e.target.files[0]){
+    importJson(e.target.files[0]); e.target.value='';
+  }
+});
+
+/* ═════════════ 시작 ═════════════ */
+(async function start(){
+  document.getElementById('workdate').value = S.date;
+  flags(); rebuild();                       // 저장소를 기다리지 않고 먼저 그립니다
+  await Store.init();
+  const cfg = await Store.loadConfig();
+  let legacy=false;
+  if(cfg && Array.isArray(cfg.products) && cfg.products.length){
+    S.date    = cfg.date    || S.date;
+    S.products= cfg.products;
+    S.rawOpen = cfg.rawOpen || S.rawOpen;
+    S.preOpen = cfg.preOpen || S.preOpen;
+    S.rawIn   = cfg.rawIn   || S.rawIn;
+    S.endRaw  = {}; S.endPre = {};
+    legacy=!cfg.version;
+    if(!legacy){
+      const active=await Store.getDay(S.date);
+      if(active && active.state) applyDayState(active.state); else blankDay();
+      applyCarryToCurrent(await carryForDate(S.date));   // 열 때도 직전 작업일 당일재고를 다시 이어줍니다
+    }
+    document.getElementById('workdate').value = S.date;
+    IGNORE_SAVE=true; rebuild(); IGNORE_SAVE=false;
+  } else { rebuild(); }
+  REC.anchor = new Date(S.date+'T00:00:00');
+  BOOTING = false;                          // 이제부터 변경분을 저장합니다
+  if(legacy) await saveToday(true);          // 기존 화면의 마지막 입력값을 날짜 DB로 1회 이전
+  flag(Store.mode==='local' ? 'local' : (Store.canWrite ? 'ok' : 'ro'), Store.label);
+  const e=document.getElementById('saveflag');
+  if(e) e.title = Store.mode==='firebase' ? '실시간 공유 저장소에 연결돼 있습니다.'
+                : Store.mode==='claude'   ? '이 링크를 여는 분들이 같은 기록을 봅니다.'
+                : '이 브라우저에만 저장됩니다. 다른 분께는 보이지 않습니다.';
+  if(Store.mode==='local'){
+    const h=document.getElementById('rechint');
+    if(h) h.querySelector('div').insertAdjacentHTML('beforeend',
+      '<br><b style="color:var(--edit)">지금은 이 브라우저에만 저장됩니다.</b> 여러 분이 같이 보시려면 저장소 연결이 필요합니다 — 백업 파일로 옮기실 수 있습니다.');
+  }
+})();
+</script>
