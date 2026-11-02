@@ -160,6 +160,9 @@ details.konti[open] summary::before{content:"▾ "}
 details.konti .inrow{margin-top:9px}
 .matbox{border:1px dashed var(--line); border-radius:8px; padding:7px 8px 8px; display:flex; flex-direction:column; gap:4px; flex:0 1 auto}
 .matgrid{display:flex; gap:4px}
+.lblrow{display:flex; align-items:center; gap:6px; flex-wrap:wrap}
+.lblin{font:inherit; font-size:12px; width:84px; padding:2px 6px; color:var(--ink); background:var(--input-bg); border:1px solid var(--input-line); border-radius:5px}
+.ulin{font:inherit; font-size:11px; width:64px; padding:4px 7px; text-align:center; color:var(--ink); background:var(--input-bg); border:1px solid var(--input-line); border-radius:999px}
 .matgrid .mf{display:flex; flex-direction:column; gap:2px; width:52px}
 .matgrid .mf span{font-size:9.5px; color:var(--ink-3)}
 .matgrid .mf input{font:inherit; font-size:12px; text-align:right; width:100%; padding:3px 5px; color:var(--ink);
@@ -348,7 +351,7 @@ td.short{color:var(--alert); font-weight:700}
     <div class="tablewrap"><table id="sumtbl"></table></div>
     <div class="note"><b>기준수율은 입력하지 않습니다.</b> 그날의 실제 수율이 자동으로 계산됩니다.<br>
     전처리(오늘 실제 썬 양) = 가공 + 당일 전처리 재고 − 전일 전처리 재고 · 원물투입 = 전일 원물 + 원물 입고 − 당일 원물<br>
-    원물 수율 % = 전처리 ÷ 원물투입 (당일 원물 재고를 넣으면 계산됩니다. 당일 전처리 재고는 기본값 0이며 실제 남은 양이 있을 때만 고치시면 됩니다). 원물을 쓰지 않은 날은 "원물 미사용"으로 표시됩니다. 마이너스이거나 수율이 100%를 넘으면 "재고 확인"으로 표시됩니다.</div>
+    원물 수율 % = 전처리 ÷ 원물투입 (당일 원물 재고를 넣으면 계산됩니다). 원물을 쓰지 않은 날은 "원물 미사용"으로 표시됩니다. 마이너스이거나 수율이 100%를 넘으면 "재고 확인"으로 표시됩니다.</div>
   </section>
 
   <!-- ⑤ 기록·집계 -->
@@ -638,7 +641,7 @@ function configSnapshot(){
     p.buyers.forEach(b=>b.v=0);
     return p;
   });
-  return {version:4, date:S.date, products, updatedAt:new Date().toISOString()};
+  return {version:4, date:S.date, products, hiddenMats:(S.hiddenMats||[]).slice(), updatedAt:new Date().toISOString()};
 }
 function dayState(){
   return {products:S.products.map(p=>({id:p.id, stock:+p.stock||0, stockManual:!!p.stockManual, lot:+p.lot||0, autoLot:!!p.autoLot,
@@ -895,7 +898,7 @@ function buildCards(){
                     placeholder="제품명 옆 설명 — 비우시면 안 보입니다" aria-label="제품 설명">`
           : `<h3>${esc(p.nm)}</h3>${p.sub?`<span class="sub">${esc(p.sub)}</span>`:''}`}
         <span style="display:flex;gap:6px;align-items:center;margin-left:auto">
-          <button class="mini ghost" data-ulabel="${p.id}" title="입력 단위 선택: 콘티 또는 kg" style="font-size:11px;padding:4px 9px">${p.unitLabel||'콘티'}</button>
+          <input class="ulin" value="${esc(p.unitLabel||'콘티')}" data-ulbl="${p.id}" maxlength="8" title="입력 단위 이름 — 직접 고치실 수 있습니다. 'kg'로 적으면 kg 기준으로 표시됩니다." aria-label="입력 단위 이름">
           <span class="plot num" id="plot-${p.id}"></span>
         </span>
       </div>
@@ -958,13 +961,17 @@ function buildCards(){
                      <button class="mini ${m.deleted?'':'x'} keep" data-${m.deleted?'recov':'delm'}="m-${p.id}-${i}" title="${m.deleted?'이 원재료 복원':'이 원재료 삭제'}" style="${m.deleted?'border-color:var(--leaf);color:var(--leaf)':''}">${m.deleted?'↩':'✕'}</button>
                    </div>
                    <div class="matgrid">
-                     <label class="mf"><span>콘티수량</span><input type="number" value="${m.k}" data-p="${p.id}" data-k="konti" data-i="${i}" step="0.5" inputmode="decimal"${m.deleted?' disabled':''}></label>
-                     <label class="mf"><span>콘티 kg</span><input type="number" value="${m.u}" data-p="${p.id}" data-k="unit" data-i="${i}" step="any" inputmode="decimal"${m.deleted?' disabled':''}></label>
+                     <label class="mf"><span>${esc(p.lblK||'콘티수량')}</span><input type="number" value="${m.k}" data-p="${p.id}" data-k="konti" data-i="${i}" step="0.5" inputmode="decimal"${m.deleted?' disabled':''}></label>
+                     <label class="mf"><span>${esc(p.lblU||'콘티 kg')}</span><input type="number" value="${m.u}" data-p="${p.id}" data-k="unit" data-i="${i}" step="any" inputmode="decimal"${m.deleted?' disabled':''}></label>
                    </div>
                    ${m.deleted?'':`<span style="font-size:10px;color:var(--ink-3)">배합비 <b id="ratio-${p.id}-${ri}"></b></span>`}
                  </div>`; }).join(''); })()}
             <button class="mini keep" data-addm="${p.id}" style="padding:8px 11px;align-self:center">+ 원재료</button>
           </div>
+          <div class="note lblrow">칸 제목 수정:
+            <input class="lblin" value="${esc(p.lblK||'콘티수량')}" data-lblk="${p.id}" maxlength="10" aria-label="수량 칸 제목">
+            <input class="lblin" value="${esc(p.lblU||'콘티 kg')}" data-lblu="${p.id}" maxlength="10" aria-label="단위 무게 칸 제목">
+            <span style="color:var(--ink-3)">— 고치면 위 칸 제목이 바로 바뀝니다.</span></div>
           <div class="note">포장중량 <input type="number" value="${p.pack}" data-p="${p.id}" data-k="pack" step="any" inputmode="decimal"
                      style="font:inherit;font-size:12px;width:72px;text-align:right;padding:2px 5px;background:var(--input-bg);border:1px solid var(--input-line);border-radius:5px;color:var(--ink)"> g/EA
                    — 이 값과 적재량으로 P/LOT가 정해집니다.</div>
@@ -1052,7 +1059,8 @@ function floor(){
 function matList(){
   const extra = [];
   vis().forEach(p=>p.mats.forEach(m=>{ if(m.n && !MATS.includes(m.n) && !extra.includes(m.n)) extra.push(m.n); }));
-  return MATS.concat(extra);
+  const hid = S.hiddenMats || [];
+  return MATS.concat(extra).filter(m=>!hid.includes(m));
 }
 /* 원재료별 하루 계산 — 팀장님 순서: 원물 → 전처리 → 오늘 썰 양 → 필요 원물 → 1층 요청 → 내일 재고 */
 function matTotals(){
@@ -1072,8 +1080,8 @@ const hasVal = (obj,m)=> !!obj && obj[m]!=null && obj[m]!=='';
 function stockRow(m, t){
   const cutNeed = t[m] ? t[m].cutNeed : 0;
   const rawOpen = +S.rawOpen[m]||0, preOpen = +S.preOpen[m]||0, rawIn = +S.rawIn[m]||0;
-  const hasEndRaw = hasVal(S.endRaw,m), hasEndPre = true;   // 당일 전처리 재고는 기본값 0 (비우면 0으로 계산)
-  const endRaw = hasEndRaw ? (+S.endRaw[m]||0) : null, endPre = hasVal(S.endPre,m) ? (+S.endPre[m]||0) : 0;
+  const hasEndRaw = hasVal(S.endRaw,m), hasEndPre = true;   // (당일 전처리 재고 입력칸은 폐지 — 항상 0)   // 당일 전처리 재고는 기본값 0 (비우면 0으로 계산)
+  const endRaw = hasEndRaw ? (+S.endRaw[m]||0) : null, endPre = 0;
   const pre    = hasEndPre ? cutNeed + endPre - preOpen : null;
   const rawUse = hasEndRaw ? rawOpen + rawIn - endRaw : null;
   let yAct=null, yState='wait';                         // wait: 입력 대기 · none: 원물 미사용 · bad: 재고 확인 · ok
@@ -1111,15 +1119,16 @@ function buildSum(){
        <th rowspan="2">원재료</th>
        <th colspan="2" class="grp">전일 재고</th>
        <th colspan="4" class="grp">원물 사용량</th>
-       <th colspan="2" class="grp" style="color:var(--edit)">당일재고</th>
+       <th class="grp" style="color:var(--edit)">당일재고</th>
        <th rowspan="2">원물 수율 %<br><small style="font-weight:400">(자동계산)</small></th>
+       <th rowspan="2" style="width:44px">삭제</th>
      </tr>
      <tr>
        <th>원물</th><th>전처리</th>
        <th>가공<br><small style="font-weight:400">(작업지시 절단량)</small></th>
        <th>전처리<br><small style="font-weight:400">(오늘 실제 썬 양)</small></th>
        <th>원물투입</th><th>원물 입고</th>
-       <th>전처리</th><th>원물</th>
+       <th>원물</th>
      </tr></thead><tbody>
    ${matList().map(m=>`<tr>
        <td>${esc(m)}</td>
@@ -1129,17 +1138,28 @@ function buildSum(){
        <td class="num" id="s-pre-${esc(m)}"></td>
        <td class="num" id="s-use-${esc(m)}"></td>
        ${stockCell('ri-'+m, +S.rawIn[m]||0, m, 'rawin', '원물 입고(1층에서 올린 양)')}
-       ${endCell('ep-'+m, S.endPre, m, 'endpre', '당일 전처리 재고', '0')}
        ${endCell('er-'+m, S.endRaw, m, 'endraw', '당일 원물 재고')}
-       <td class="num" id="s-y-${esc(m)}"></td></tr>`).join('')}
+       <td class="num" id="s-y-${esc(m)}"></td>
+       <td class="delc"><button class="mini x keep" data-delraw="${esc(m)}" title="이 원재료를 원물 사용현황에서 삭제" aria-label="${esc(m)} 삭제">✕</button></td></tr>`).join('')}
    <tr class="total"><td>합계</td>
      <td class="num" id="t-ro"></td><td class="num" id="t-po"></td>
      <td class="num" id="t-need"></td><td class="num" id="t-pre"></td>
      <td class="num" id="t-use"></td><td class="num" id="t-ri"></td>
-     <td class="num" id="t-ep"></td><td class="num" id="t-er"></td>
-     <td class="num" id="t-y"></td></tr></tbody>`;
+     <td class="num" id="t-er"></td>
+     <td class="num" id="t-y"></td><td></td></tr></tbody>`;
+  hiddenRawBox();
 }
 
+/* 삭제한 원재료 복원 줄 — 표 아래 */
+function hiddenRawBox(){
+  const tbl = document.getElementById('sumtbl'); if(!tbl) return;
+  let box = document.getElementById('rawhidden');
+  if(!box){ box = document.createElement('div'); box.id='rawhidden'; box.className='note';
+    const host = tbl.closest('.tablewrap') || tbl; host.insertAdjacentElement('afterend', box); }
+  const hid = S.hiddenMats || [];
+  box.hidden = !hid.length;
+  box.innerHTML = hid.length ? '삭제한 원재료: ' + hid.map(m=>`<button class="mini keep" data-restoreraw="${esc(m)}" title="다시 표시" style="margin:2px 4px 2px 0">↩ ${esc(m)}</button>`).join('') : '';
+}
 function refreshSum(){
   const t = matTotals();
   const T = {ro:0,po:0,need:0,pre:0,use:0,ri:0,ep:0,er:0,yp:0,yu:0};
@@ -1161,7 +1181,7 @@ function refreshSum(){
     }
     const active = r.cutNeed>0 || r.rawOpen>0 || r.preOpen>0 || r.rawIn>0;
     if(active && !(r.hasEndRaw && r.hasEndPre)) miss.push(m);
-    [['ep-'+m, r.hasEndPre],['er-'+m, r.hasEndRaw]].forEach(([id,has])=>{ const e=document.getElementById(id); if(e) e.style.borderColor = (active && !has) ? 'var(--amber)' : ''; });
+    [['er-'+m, r.hasEndRaw]].forEach(([id,has])=>{ const e=document.getElementById(id); if(e) e.style.borderColor = (active && !has) ? 'var(--amber)' : ''; });
     T.ro+=r.rawOpen; T.po+=r.preOpen; T.need+=r.cutNeed; T.ri+=r.rawIn;
     if(r.pre!=null) T.pre+=r.pre;
     if(r.rawUse!=null) T.use+=r.rawUse;
@@ -1171,7 +1191,7 @@ function refreshSum(){
   });
   setText('t-ro',f1(T.ro)); setText('t-po',f1(T.po)); setText('t-need',f1(T.need));
   setText('t-pre',f1(T.pre)); setText('t-use',f1(T.use)); setText('t-ri',f1(T.ri));
-  setText('t-ep',f1(T.ep)); setText('t-er',f1(T.er));
+  setText('t-er',f1(T.er));
   setText('t-y', T.yu>0 ? (T.yp/T.yu*100).toFixed(1)+'%' : '—');
   const w = document.getElementById('endwarn');
   if(w){ w.hidden = !miss.length;
@@ -1571,6 +1591,22 @@ document.addEventListener('input', e=>{
     if(p){ p.mats[+i].n = t.value; floor(); buildSum(); refreshSum(); save(); }
     return;
   }
+  if(d.lblk || d.lblu){                       // 칸 제목 수정 (제품별)
+    const p = S.products.find(x=>x.id===(d.lblk||d.lblu));
+    if(p){
+      const v = t.value.trim();
+      if(d.lblk){ p.lblK = v; } else { p.lblU = v; }
+      const lab = document.querySelectorAll(`#card-${p.id} .matgrid .mf:${d.lblk?'first':'last'}-child span`);
+      lab.forEach(x=>x.textContent = v || (d.lblk?'콘티수량':'콘티 kg'));
+      save();
+    }
+    return;
+  }
+  if(d.ulbl){                                 // 입력 단위 이름 직접 수정 ('kg'이면 kg 기준 표기)
+    const p = S.products.find(x=>x.id===d.ulbl);
+    if(p){ p.unitLabel = t.value.trim() || '콘티'; floor(); save(); }
+    return;
+  }
   if(d.pn){                                   // 제품명
     const p = S.products.find(x=>x.id===d.pn);
     if(p){ p.nm = t.value; floor(); logview(); save(); }
@@ -1628,6 +1664,18 @@ document.addEventListener('click', e=>{
       const inp = document.querySelector(`[data-bn="${p.id}|${p.buyers.length-1}"]`);
       if(inp){ inp.focus(); inp.select(); } }
     return;
+  }
+  if(d.delraw){                               // ③ 원물 사용현황에서 원재료 숨기기(복원 가능)
+    const m = d.delraw;
+    const t = matTotals(), r = stockRow(m, t);
+    const used = r.cutNeed>0 || r.rawOpen>0 || r.rawIn>0 || r.hasEndRaw;
+    if(used && !confirm(`'${m}'에 오늘 입력된 값이나 작업지시 소요량이 있습니다.\n그래도 원물 사용현황에서 삭제하시겠습니까? (아래 '삭제한 원재료'에서 복원할 수 있습니다)`)) return;
+    S.hiddenMats = (S.hiddenMats||[]).concat(m).filter((x,i,a)=>a.indexOf(x)===i);
+    buildSum(); refreshSum(); logview(); save(true); return;
+  }
+  if(d.restoreraw){
+    S.hiddenMats = (S.hiddenMats||[]).filter(x=>x!==d.restoreraw);
+    buildSum(); refreshSum(); logview(); save(true); return;
   }
   if(d.delm){                                 // 원재료 소프트 삭제 (계산에서 제외, 복원 가능)
     const id = d.delm.slice(2);               // "m-" 접두어 제거
@@ -1728,6 +1776,7 @@ document.addEventListener('change', e=>{
   if(cfg && Array.isArray(cfg.products) && cfg.products.length){
     S.date    = cfg.date    || S.date;
     S.products= cfg.products;
+    S.hiddenMats = Array.isArray(cfg.hiddenMats) ? cfg.hiddenMats : [];
     S.rawOpen = cfg.rawOpen || S.rawOpen;
     S.preOpen = cfg.preOpen || S.preOpen;
     S.rawIn   = cfg.rawIn   || S.rawIn;
