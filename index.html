@@ -160,6 +160,9 @@ details.konti[open] summary::before{content:"▾ "}
 details.konti .inrow{margin-top:9px}
 .matbox{border:1px dashed var(--line); border-radius:8px; padding:7px 8px 8px; display:flex; flex-direction:column; gap:4px; flex:0 1 auto}
 .matgrid{display:flex; gap:4px}
+.lblgrid{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+.lblgrid label{display:flex; flex-direction:column; gap:2px; font-size:10.5px; color:var(--ink-3)}
+.lblgrid input{font:inherit; font-size:12.5px; width:150px; padding:4px 7px; color:var(--ink); background:var(--input-bg); border:1px solid var(--input-line); border-radius:6px}
 .lblrow{display:flex; align-items:center; gap:6px; flex-wrap:wrap}
 .lblin{font:inherit; font-size:12px; width:84px; padding:2px 6px; color:var(--ink); background:var(--input-bg); border:1px solid var(--input-line); border-radius:5px}
 .ulin{font:inherit; font-size:11px; width:64px; padding:4px 7px; text-align:center; color:var(--ink); background:var(--input-bg); border:1px solid var(--input-line); border-radius:999px}
@@ -296,6 +299,11 @@ td.short{color:var(--alert); font-weight:700}
         <button class="btn danger" id="resetyes">정말 되돌립니다</button>
         <button class="btn sec" id="resetno">취소</button>
       </span>
+    </div>
+
+    <div class="hint" id="lblpanel" hidden>
+      <b>화면 이름 수정</b> — 메뉴·카드 항목의 이름을 바꾸십시오. 비우면 기본 이름으로 돌아갑니다.
+      <div class="lblgrid" id="lblgrid"></div>
     </div>
 
     <div class="hint" id="hint-normal">
@@ -511,6 +519,12 @@ const FIREBASE = {
 const FB_ROOT = "dkj1f";      // 여러 사업장을 한 프로젝트에서 쓰실 때 구분용
 
 const clone = o => JSON.parse(JSON.stringify(o));
+/* 화면 이름(메뉴·카드 항목명) — 사용자가 '칸 편집하기'에서 바꿀 수 있습니다. 비우면 기본 이름으로 돌아갑니다. */
+const LBL_DEF = {lot:'총생산 LOT', out:'출고 합계', need:'필요 생산', cap:'생산가능', rest:'잔여재고', stock:'전일재고',
+  t_input:'① 출고량 입력', t_floor:'② 현장 작업지시', t_sum:'③ 원물 사용현황', t_log:'④ 생산일지', t_rec:'⑤ 기록·집계'};
+const LBL_ORDER = ['t_input','t_floor','t_sum','t_log','t_rec','stock','lot','out','need','cap','rest'];
+const LBL_VIEW = {t_input:'input', t_floor:'floor', t_sum:'sum', t_log:'log', t_rec:'rec'};
+const L = k => ((typeof S!=='undefined' && S.labels && S.labels[k]) || LBL_DEF[k]);
 const fresh = ()=>({ date:'2026-09-01', products:clone(DEFAULT_PRODUCTS),
                      rawOpen:{...RAW0}, preOpen:{...PRE0}, rawIn:ZERO(),
                      endRaw:{}, endPre:{}, rawOpenManual:{}, preOpenManual:{}, prev:null });   // endRaw/endPre = 당일재고(원물/전처리) 실사 입력 — 키가 없으면 미입력
@@ -641,7 +655,7 @@ function configSnapshot(){
     p.buyers.forEach(b=>b.v=0);
     return p;
   });
-  return {version:4, date:S.date, products, hiddenMats:(S.hiddenMats||[]).slice(), updatedAt:new Date().toISOString()};
+  return {version:4, date:S.date, products, hiddenMats:(S.hiddenMats||[]).slice(), labels:{...(S.labels||{})}, updatedAt:new Date().toISOString()};
 }
 function dayState(){
   return {products:S.products.map(p=>({id:p.id, stock:+p.stock||0, stockManual:!!p.stockManual, lot:+p.lot||0, autoLot:!!p.autoLot,
@@ -906,13 +920,13 @@ function buildCards(){
         <div class="inrow">
           <div class="field" style="flex-basis:${p.stockW||DEFW}px">
             ${EDIT ? `<div class="fedit">
-                <span class="fname">전일재고</span>
+                <span class="fname lb-stock">${esc(L('stock'))}</span>
                 <div class="btns">
                   <button class="mini" data-wid="${p.id}|stock|-" title="칸 줄이기">◀</button>
                   <button class="mini" data-wid="${p.id}|stock|+" title="칸 늘리기">▶</button>
                 </div>
               </div>`
-             : `<label for="st-${p.id}">전일재고${p.stockManual?'<span class="q" style="color:var(--leaf)" title="실사로 직접 입력·수정하신 값입니다. 자동 이월값이 아닙니다.">실사</span>':''}</label>`}
+             : `<label for="st-${p.id}"><span class="lb-stock">${esc(L('stock'))}</span>${p.stockManual?'<span class="q" style="color:var(--leaf)" title="실사로 직접 입력·수정하신 값입니다. 자동 이월값이 아닙니다.">실사</span>':''}</label>`}
             <input class="val" type="number" id="st-${p.id}" value="${p.stock}" data-p="${p.id}" data-k="stock" step="any" inputmode="decimal"
                    style="${p.stockManual?'background:var(--leaf-soft);border-color:var(--leaf)':''}">
           </div>
@@ -936,17 +950,17 @@ function buildCards(){
         <div class="sep"></div>
 
         <div class="lotline">
-          <label class="lbl" for="lot-${p.id}">총생산 LOT</label>
+          <label class="lbl lb-lot" for="lot-${p.id}">${esc(L('lot'))}</label>
           <input type="number" id="lot-${p.id}" value="${f2(c.lot)}" data-p="${p.id}" data-k="lot" step="0.25" inputmode="decimal">
           <span class="pill" id="pill-${p.id}"></span>
           <button class="ghost" data-apply="${p.id}" id="apply-${p.id}" hidden>필요값 적용</button>
         </div>
 
         <dl class="res">
-          <div><dt>출고 합계</dt><dd class="num" id="r-out-${p.id}"></dd></div>
-          <div><dt>필요 생산</dt><dd class="num" id="r-need-${p.id}"></dd></div>
-          <div><dt>생산가능</dt><dd class="num" id="r-cap-${p.id}"></dd></div>
-          <div id="r-rest-w-${p.id}"><dt>잔여재고</dt><dd class="num" id="r-rest-${p.id}"></dd></div>
+          <div><dt class="lb-out">${esc(L('out'))}</dt><dd class="num" id="r-out-${p.id}"></dd></div>
+          <div><dt class="lb-need">${esc(L('need'))}</dt><dd class="num" id="r-need-${p.id}"></dd></div>
+          <div><dt class="lb-cap">${esc(L('cap'))}</dt><dd class="num" id="r-cap-${p.id}"></dd></div>
+          <div id="r-rest-w-${p.id}"><dt class="lb-rest">${esc(L('rest'))}</dt><dd class="num" id="r-rest-${p.id}"></dd></div>
         </dl>
 
         <details class="konti" open>
@@ -1550,8 +1564,16 @@ function flags(){
 }
 
 /* ===================== 전체 렌더 ===================== */
+function applyLabels(){
+  Object.keys(LBL_VIEW).forEach(k=>{ const b=document.querySelector(`.tab[data-view="${LBL_VIEW[k]}"]`); if(b) b.textContent = L(k); });
+  ['lot','out','need','cap','rest','stock'].forEach(k=>document.querySelectorAll('.lb-'+k).forEach(e=>e.textContent=L(k)));
+}
+function buildLabelPanel(){
+  const g = document.getElementById('lblgrid'); if(!g) return;
+  g.innerHTML = LBL_ORDER.map(k=>`<label>${esc(LBL_DEF[k])}<input data-lbl="${k}" value="${esc(L(k))}" placeholder="${esc(LBL_DEF[k])}" maxlength="20"></label>`).join('');
+}
 function refresh(){ refreshCards(); floor(); refreshSum(); logview(); save(); }
-function rebuild(){ buildCards(); buildSum(); hiddenBox(); refresh(); }
+function rebuild(){ buildLabelPanel(); applyLabels(); buildCards(); buildSum(); hiddenBox(); refresh(); }
 
 /* ===================== 이벤트 ===================== */
 const num = v => v===''?0:(isNaN(parseFloat(v))?0:parseFloat(v));
@@ -1590,6 +1612,12 @@ document.addEventListener('input', e=>{
     const p = S.products.find(x=>x.id===pid);
     if(p){ p.mats[+i].n = t.value; floor(); buildSum(); refreshSum(); save(); }
     return;
+  }
+  if(d.lbl){                                  // 화면 이름 수정(전역)
+    S.labels = S.labels || {};
+    const v = t.value.trim();
+    if(v) S.labels[d.lbl] = v; else delete S.labels[d.lbl];
+    applyLabels(); save(); return;
   }
   if(d.lblk || d.lblu){                       // 칸 제목 수정 (제품별)
     const p = S.products.find(x=>x.id===(d.lblk||d.lblu));
@@ -1727,6 +1755,7 @@ document.addEventListener('click', e=>{
     el.classList.toggle('sec', EDIT);
     el.classList.toggle('edit', !EDIT);
     document.getElementById('hint-normal').hidden = EDIT;
+    document.getElementById('lblpanel').hidden = !EDIT;
     document.getElementById('hint-edit').hidden = !EDIT;
     document.getElementById('resetbtn').hidden = !EDIT;
     document.getElementById('resetconfirm').hidden = true;
@@ -1777,6 +1806,7 @@ document.addEventListener('change', e=>{
     S.date    = cfg.date    || S.date;
     S.products= cfg.products;
     S.hiddenMats = Array.isArray(cfg.hiddenMats) ? cfg.hiddenMats : [];
+    S.labels = (cfg.labels && typeof cfg.labels==='object') ? cfg.labels : {};
     S.rawOpen = cfg.rawOpen || S.rawOpen;
     S.preOpen = cfg.preOpen || S.preOpen;
     S.rawIn   = cfg.rawIn   || S.rawIn;
